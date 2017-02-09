@@ -1,0 +1,6 @@
+[package]
+name = "galvanic-assert"
+version = "0.1.0"
+authors = ["Christopher Bacher <mindsbackyard@gmail.com>"]
+
+[dependencies]
