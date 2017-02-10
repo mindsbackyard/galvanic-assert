@@ -2,18 +2,28 @@
 
 use std::fmt;
 
+#[macro_export]
 macro_rules! assert_that {
+    ( $actual: expr, panics ) => {
+        let result = std::panic::catch_unwind(|| { $actual; });
+        if result.is_ok() {
+            panic!("\nFailed assertion; expected expression to panic")
+        }
+    };
+    ( $actual: expr, does not panic ) => {
+        let result = std::panic::catch_unwind(|| { $actual; });
+        if result.is_err() {
+            panic!("\nFailed assertion; expected expression to panic")
+        }
+    };
     ( $actual: expr, $matcher: expr ) => {
         match $matcher.check(&$actual) {
-            MatchResult::Match => { },
-            MatchResult::FailWithReason{matcher, reason} => {
-                panic!("\nFailed assertion of matcher: {}\n  {}\n", matcher, reason)
-            },
-            MatchResult::FailWithComparison{matcher, expected, actual} => {
-                panic!("\nFailed assertion of matcher {}\n  Expected: {}\n  Got: {}\n", matcher, expected, actual);
+            MatchResult::Matched { .. } => { },
+            MatchResult::Failed { name, reason } => {
+                panic!("\nFailed assertion of matcher: {}\n{}", name, reason)
             }
         }
-    }
+    };
 }
 
 
