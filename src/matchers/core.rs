@@ -1,11 +1,11 @@
 use std::fmt::Debug;
 use super::super::*;
 
-pub fn returns<T>() -> impl FnMut(&T) -> MatchResult {
-    move |_s: &T| MatchResult::Matched { name: "anything".to_owned() }
+pub fn assertion_always_succeeds<T>() -> impl FnMut(&T) -> MatchResult {
+    move |_s: &T| MatchResult::Matched { name: "succeeds_always".to_owned() }
 }
 
-pub fn this_assertion_fails_always<T>() -> impl FnMut(&T) -> MatchResult {
+pub fn assertion_always_fails<T>() -> impl FnMut(&T) -> MatchResult {
     move |_s: &T| MatchResult::Failed {
         name: "fails_always".to_owned(),
         reason: format_fail_reason("This matcher fails always")
