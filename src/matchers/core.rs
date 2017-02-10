@@ -12,6 +12,11 @@ pub fn assertion_always_fails<T>() -> impl FnMut(&T) -> MatchResult {
     }
 }
 
+pub fn is<T, M>(matcher: M) -> M
+where M: Matcher<T> {
+    matcher
+}
+
 pub fn not<T, M>(mut matcher: M) -> impl FnMut(&T) -> MatchResult
 where M: Matcher<T> {
     move |actual: &T| {
@@ -94,14 +99,30 @@ where T: PartialOrd + Debug {
 }
 pub fn geq<T: PartialOrd + Debug>(expected: T) -> impl Fn(&T) -> MatchResult { greater_than_or_equal(expected) }
 
-pub fn is_same_object<'a, T>(expected: &'a T) -> impl Fn(&T) -> MatchResult
-where T: PartialEq + Debug {
+pub fn close_to<T>(expected: T, eps: T) -> impl Fn(&T) -> MatchResult
+where T: Copy + PartialOrd + std::ops::Add<Output=T> + std::ops::Sub<Output=T> + Debug {
     move |actual: &T|
-        if actual == expected {
-            MatchResult::Matched { name: "is_same_object".to_owned() }
+        if expected - eps <= *actual && *actual <= expected + eps {
+            MatchResult::Matched { name: "close_to".to_owned() }
         } else {
             MatchResult::Failed {
-                name: "is_same_object".to_owned(),
+                name: "close_to".to_owned(),
+                reason: format_fail_reason(
+                    &format!("{:?} should be between {:?} and {:?}",
+                        actual, expected - eps, expected + eps
+                ))
+            }
+        }
+}
+
+pub fn same_object<'a, T>(expected: &'a T) -> impl Fn(&T) -> MatchResult
+where T: Debug {
+    move |actual: &T|
+        if (actual as *const _) == (expected as *const _) {
+            MatchResult::Matched { name: "same_object".to_owned() }
+        } else {
+            MatchResult::Failed {
+                name: "same_object".to_owned(),
                 reason: format_fail_comparison(actual, &expected)
             }
         }

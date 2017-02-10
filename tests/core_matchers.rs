@@ -160,3 +160,43 @@ mod greater_than_or_equal {
         );
     }
 }
+
+mod close_to {
+    use super::*;
+
+    #[test]
+    fn should_match() {
+        assert_that!(3.14, close_to(3.14, 0.001));
+    }
+
+    #[test]
+    fn should_fail() {
+        assert_that!(
+            assert_that!(3.145, close_to(3.14, 0.001)),
+            panics
+        );
+    }
+}
+
+mod same_object {
+    use super::*;
+
+    #[derive(Debug)]
+    struct Foo;
+
+    #[test]
+    fn should_match() {
+        let foo = Foo {};
+        assert_that!(foo, same_object(&foo));
+    }
+
+    #[test]
+    fn should_fail() {
+        let foo1 = Foo {};
+        let foo2 = Foo {};
+        assert_that!(
+            assert_that!(foo1, same_object(&foo2)),
+            panics
+        );
+    }
+}
