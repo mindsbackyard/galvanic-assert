@@ -38,6 +38,23 @@ mod invariants {
     }
 }
 
+mod not {
+    use super::*;
+
+    #[test]
+    fn should_invert_success() {
+        assert_that!(1, not(assertion_always_fails()));
+    }
+
+    #[test]
+    fn should_invert_fail() {
+        assert_that!(
+            assert_that!(1, not(assertion_always_succeeds())),
+            panics
+        );
+    }
+}
+
 mod eq {
     use super::*;
 
