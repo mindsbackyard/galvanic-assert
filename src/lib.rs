@@ -48,6 +48,14 @@ pub enum MatchResult {
     }
 }
 
+pub fn matched() -> MatchResult {
+    MatchResult::Matched { name: "temporary".to_owned() }
+}
+
+pub fn failed() -> MatchResult {
+    MatchResult::Failed { name: "temporary".to_owned(), reason: String::new() }
+}
+
 
 pub fn format_fail_reason(reason: &str) -> String {
     format!("  Because: {}", reason)
