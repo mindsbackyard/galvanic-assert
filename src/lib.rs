@@ -1,4 +1,5 @@
 #![feature(conservative_impl_trait)]
+#![feature(discriminant_value)]
 
 use std::fmt;
 
