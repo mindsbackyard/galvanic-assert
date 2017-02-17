@@ -5,7 +5,7 @@ use std::mem;
 
 #[macro_export]
 macro_rules! is_variant {
-    ( $enum_type: path, $variant: path ) => {
+    ( $variant: path ) => {
         |actual: &_| {
             match *actual {
                 $variant {..} => MatchResult::Matched { name: "is_variant".to_owned() },

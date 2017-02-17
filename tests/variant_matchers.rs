@@ -2,7 +2,6 @@
 extern crate galvanic_assert;
 
 use galvanic_assert::*;
-use galvanic_assert::matchers::*;
 use galvanic_assert::matchers::variant::*;
 
 #[derive(Debug)]
@@ -16,15 +15,13 @@ mod is_variant {
 
     #[test]
     fn should_succeed() {
-        let x = MyEnum::Var1;
-        assert_that!(x, is_variant!(MyEnum, MyEnum::Var1));
+        assert_that!(MyEnum::Var1, is_variant!(MyEnum::Var1));
     }
 
     #[test]
     fn should_fail() {
-        let x = MyEnum::Var1;
         assert_that!(
-            assert_that!(x, is_variant!(MyEnum, MyEnum::Var2)),
+            assert_that!(MyEnum::Var1, is_variant!(MyEnum::Var2)),
             panics
         );
     }
