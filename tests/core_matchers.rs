@@ -4,6 +4,8 @@ extern crate galvanic_assert;
 use galvanic_assert::*;
 use galvanic_assert::matchers::*;
 
+use std::result::Result;
+
 mod assert_panic {
     use super::*;
 
@@ -18,6 +20,42 @@ mod assert_panic {
             assert_that!(1+1, panics);
         });
         assert!(panicked.is_err());
+    }
+}
+
+mod assert_does_not_panic {
+    use super::*;
+
+    #[test]
+    fn should_assert_that_no_panic_occurred() {
+        assert_that!(1+1, does not panic);
+    }
+
+    #[test]
+    fn should_fail_to_assert_a_panic() {
+        let panicked = std::panic::catch_unwind(|| {
+            assert_that!(panic!("panic"), does not panic);
+        });
+        assert!(panicked.is_err());
+    }
+}
+
+mod assert_expression {
+    use super::*;
+
+    #[test]
+    fn should_assert_an_expression_to_be_true() {
+        let ok: Result<i32,i32> = Ok(4);
+        assert_that!(ok.is_ok());
+    }
+
+    #[test]
+    fn should_fail_to_assert_an_expression_to_be_true() {
+        let err: Result<i32,i32> = Err(4);
+        assert_that!(
+            assert_that!(err.is_ok()),
+            panics
+        );
     }
 }
 
