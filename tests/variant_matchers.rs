@@ -35,7 +35,7 @@ mod same_variant_as {
         let x = MyEnum::Var1;
         let expected = MyEnum::Var1;
 
-        assert_that!(x, same_variant_as(&expected));
+        assert_that!(x, same_variant_as(expected));
     }
 
     #[test]
@@ -43,7 +43,7 @@ mod same_variant_as {
         let x = MyEnum::Var1;
         let expected = MyEnum::Var2{ x: 12 };
         assert_that!(
-            assert_that!(x, same_variant_as(&expected)),
+            assert_that!(x, same_variant_as(expected)),
             panics
         );
     }

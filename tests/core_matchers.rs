@@ -225,7 +225,7 @@ mod same_object {
     #[test]
     fn should_match() {
         let foo = Foo {};
-        assert_that!(foo, same_object(&foo));
+        assert_that!(&foo, same_object(&foo));
     }
 
     #[test]
@@ -233,7 +233,7 @@ mod same_object {
         let foo1 = Foo {};
         let foo2 = Foo {};
         assert_that!(
-            assert_that!(foo1, same_object(&foo2)),
+            assert_that!(&foo1, same_object(&foo2)),
             panics
         );
     }

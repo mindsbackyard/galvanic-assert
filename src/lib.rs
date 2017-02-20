@@ -23,7 +23,7 @@ macro_rules! assert_that {
         }
     };
     ( $actual: expr, $matcher: expr ) => {
-        match $matcher.check(&$actual) {
+        match $matcher.check($actual) {
             MatchResult::Matched { .. } => { },
             MatchResult::Failed { name, reason } => {
                 panic!("\nFailed assertion of matcher: {}\n{}", name, reason)
@@ -34,12 +34,12 @@ macro_rules! assert_that {
 
 
 pub trait Matcher<T> {
-    fn check(&mut self, actual: &T) -> MatchResult;
+    fn check(&self, actual: T) -> MatchResult;
 }
 
 impl<T, F> Matcher<T> for F
-where F: FnMut(&T) -> MatchResult {
-    fn check(&mut self, actual: &T) -> MatchResult {
+where F: Fn(T) -> MatchResult {
+    fn check(&self, actual: T) -> MatchResult {
         self(actual)
     }
 }
@@ -67,7 +67,7 @@ pub fn format_fail_reason(reason: &str) -> String {
     format!("  Because: {}", reason)
 }
 
-pub fn format_fail_comparison<T>(actual: T, expected: T) -> String
+pub fn format_fail_comparison<T>(actual: &T, expected: &T) -> String
 where T: fmt::Debug {
     format!("  Expected: {:?}\n  Got: {:?}", expected, actual)
 }

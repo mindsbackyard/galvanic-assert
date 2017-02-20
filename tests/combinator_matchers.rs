@@ -9,21 +9,24 @@ mod all_of {
 
     #[test]
     fn should_match() {
-        assert_that!(1, All::of(assertion_always_succeeds())
-                            .and(assertion_always_succeeds())
+        let x = 1;
+        assert_that!(&x, All::of(assertion_always_succeeds())
+                             .and(assertion_always_succeeds())
         );
     }
 
     #[test]
     fn should_match_with_macro() {
-        assert_that!(1, all_of!(assertion_always_succeeds(), assertion_always_succeeds()));
+        let x = 1;
+        assert_that!(&x, all_of!(assertion_always_succeeds(), assertion_always_succeeds()));
     }
 
     #[test]
     fn should_fail() {
+        let x = 1;
         assert_that!(
-            assert_that!(1, All::of(assertion_always_succeeds())
-                                .and(assertion_always_fails())
+            assert_that!(&x, All::of(assertion_always_succeeds())
+                                 .and(assertion_always_fails())
             ),
             panics
         );
@@ -35,28 +38,32 @@ mod any_of {
 
     #[test]
     fn should_match_if_none_fails() {
-        assert_that!(1, Any::of(assertion_always_succeeds())
-                            .or(assertion_always_succeeds())
+        let x = 1;
+        assert_that!(&x, Any::of(assertion_always_succeeds())
+                             .or(assertion_always_succeeds())
         );
     }
 
     #[test]
     fn should_match_if_some_fails() {
-        assert_that!(1, Any::of(assertion_always_succeeds())
-                            .or(assertion_always_fails())
+        let x = 1;
+        assert_that!(&x, Any::of(assertion_always_succeeds())
+                             .or(assertion_always_fails())
         );
     }
 
     #[test]
     fn should_match_with_macro() {
-        assert_that!(1, any_of!(assertion_always_succeeds(), assertion_always_fails()));
+        let x = 1;
+        assert_that!(&x, any_of!(assertion_always_succeeds(), assertion_always_fails()));
     }
 
     #[test]
     fn should_fail() {
+        let x = 1;
         assert_that!(
-            assert_that!(1, Any::of(assertion_always_fails())
-                                .or(assertion_always_fails())
+            assert_that!(&x, Any::of(assertion_always_fails())
+                                 .or(assertion_always_fails())
             ),
             panics
         );

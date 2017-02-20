@@ -6,8 +6,8 @@ use std::mem;
 #[macro_export]
 macro_rules! is_variant {
     ( $variant: path ) => {
-        |actual: &_| {
-            match *actual {
+        |actual| {
+            match actual {
                 $variant {..} => MatchResult::Matched { name: "is_variant".to_owned() },
                 _ => MatchResult::Failed {
                         name: "is_variant".to_owned(),
@@ -18,16 +18,16 @@ macro_rules! is_variant {
     }
 }
 
-pub fn same_variant_as<'a, T>(expected: &'a T) -> impl Fn(&T) -> MatchResult
+pub fn same_variant_as<T>(expected: T) -> impl Fn(T) -> MatchResult
 where T: Debug {
-    move |actual: &T| {
-        if mem::discriminant(actual) == mem::discriminant(expected) {
+    move |actual: T| {
+        if mem::discriminant(&actual) == mem::discriminant(&expected) {
             MatchResult::Matched { name: "same_variant_as".to_owned() }
 
         } else {
             MatchResult::Failed {
                     name: "same_variant_as".to_owned(),
-                    reason: format_fail_comparison(actual, &expected)
+                    reason: format_fail_comparison(&actual, &expected)
             }
         }
     }
