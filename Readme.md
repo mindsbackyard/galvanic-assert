@@ -5,13 +5,17 @@ This crate provides a new assertion macro `assert_that!` based on **matching pre
  * make **reading** asserts comprehendable
  * easily **extend** the assertion framework
  * provide a large list **common matchers**
- * integrate with **galvanic-test** and **galvanic-mock**
+ * integrate with **galvanic-test** and **galvanic-mock** (both still in development ... stay tuned!)
  * be used with your favourite test framework
+
+The crate will be part of **galvanic**---a complete test framework for **Rust**.
+
+**galvanic-assert** currently requires *nightly* until *impl trait* returns have been stabilized.
 
 The 2-minute tutorial
 ---------------------
 Each assertion has the form `assert_that!(SOME_VALUE, MATCHES_SOMETHING);`.
-To check if some value satisfies some matching predicate, e.g., `less_than`, `contains_in_order`, `is_variant!`, ...; we can write something like:
+To check if some value satisfies some matching predicate, e.g., `less_than`, `contains_in_order`, `is_variant!`, ...; we can write something like the following to when operating on a single value:
 ```rust
 #[macro_use]
 extern crate galvanic_assert;
@@ -20,20 +24,24 @@ use galvanic_assert::matchers::*;
 #[test]
 fn expression_should_compute_correct_value {
     assert_that!(1+2, eq(3));
+    // or more wordy ...
+    assert_that!(1+2, is(eq(3)));
 }
 ```
 
-or ...
+or assert properties of collections ...
 ```rust
 use galvanic_assert::matchers::collection::*;
 #[test]
 fn expression_should_compute_correct_value {
-    let some_values = vec![5,1,3,4,2];
-    assert_that!(some_values, contains_in_any_order(vec![1,2,3,4,5]));
+    /// check for containment
+    assert_that!(vec![5,1,3,4,2], contains_in_any_order(vec![1,2,3,4,5]));
+    // check for internal structure
+    assert_that!(vec![4,3,2,1], sorted_descending());
 }
 ```
 
-or ...
+or of variants ...
 ```rust
 enum Variants {
     First(i32),
@@ -52,7 +60,11 @@ It is also possible to combine multiple matchers to create more expressive ones 
 ```rust
 #[test]
 fn expression_should_compute_correct_value {
+    // invert the meaning of a matcher
+    assert_that!(1+2, not(greater_than(3)));
+    // join several matchers conjunctively
     assert_that!(1+2, all_of!(greater_than(0), less_than(5));
+    // join several matchers disjunctively
     assert_that!(1+2, any_of!(greater_than(5), less_than(5));
 }
 ```
