@@ -17,9 +17,16 @@ macro_rules! assert_that {
             panic!("\nFailed assertion; expected expression to panic")
         }
     };
-    ( $actual: expr ) => {
+    ( $actual: expr) => {
         if !$actual {
             panic!("\nFailed assertion; expression '{}' is not true", stringify!($actual));
+        }
+    };
+    ( $actual: expr , otherwise $reason: expr ) => {
+        if !$actual {
+            panic!("\nFailed assertion; expression '{}' is not true,\n    Because: {}",
+                   stringify!($actual), $reason
+            );
         }
     };
     ( $actual: expr, $matcher: expr ) => {

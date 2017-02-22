@@ -57,6 +57,21 @@ mod assert_expression {
             panics
         );
     }
+
+    #[test]
+    fn should_assert_an_expression_to_be_true_with_reason() {
+        let ok: Result<i32,i32> = Ok(4);
+        assert_that!(ok.is_ok(), otherwise "ok is Err");
+    }
+
+    #[test]
+    fn should_fail_to_assert_an_expression_to_be_true_with_reason() {
+        let err: Result<i32,i32> = Err(4);
+        assert_that!(
+            assert_that!(err.is_ok(), otherwise "err is Ok"),
+            panics
+        );
+    }
 }
 
 mod invariants {
