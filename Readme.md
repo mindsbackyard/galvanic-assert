@@ -1,5 +1,7 @@
 Galvanic-assert: Matcher-based assertions for easier testing
 ============================================================
+[![Build Status](https://travis-ci.org/mindsbackyard/galvanic-assert.svg?branch=master)](https://travis-ci.org/mindsbackyard/galvanic-assert)
+
 This crate provides a new assertion macro `assert_that!` based on **matching predicates** (matchers) to
  * make **writing** asserts easier
  * make **reading** asserts comprehendable
