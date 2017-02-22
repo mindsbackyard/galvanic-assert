@@ -63,9 +63,9 @@ fn expression_should_compute_correct_value {
     // invert the meaning of a matcher
     assert_that!(1+2, not(greater_than(3)));
     // join several matchers conjunctively
-    assert_that!(1+2, all_of!(greater_than(0), less_than(5));
+    assert_that!(1+2, all_of!(greater_than(0), less_than(5)));
     // join several matchers disjunctively
-    assert_that!(1+2, any_of!(greater_than(5), less_than(5));
+    assert_that!(1+2, any_of!(greater_than(5), less_than(5)));
 }
 ```
 
