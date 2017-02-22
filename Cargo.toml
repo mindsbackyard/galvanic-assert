@@ -1,6 +1,17 @@
 [package]
 name = "galvanic-assert"
-version = "0.1.0"
+version = "0.4.0"
 authors = ["Christopher Bacher <mindsbackyard@gmail.com>"]
+
+description = "A comprehensive set of matcher-based assertions for easier testing"
+
+repository = "https://github.com/mindsbackyard/galvanic-assert"
+
+readme = "Readme.md"
+
+license = "Apache-2.0"
+
+keywords = ["test", "assert", "matching", "fluent"]
+categories = ["development-tools::testing"]
 
 [dependencies]
