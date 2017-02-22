@@ -2,26 +2,23 @@ use std::fmt::Debug;
 use super::super::*;
 
 macro_rules! matchresult_from_comparison {
-    (  $actual: ident $comparison: tt $expected: ident, $name: expr ) => {
+    (  $actual: ident $comparison: tt $expected: ident, $name: expr ) => {{
+        let builder = MatchResultBuilder::for_($name);
         if $actual $comparison $expected {
-            MatchResult::Matched { name: $name.to_owned() }
+            builder.matched()
         } else {
-            MatchResult::Failed {
-                name: $name.to_owned(),
-                reason: format_fail_comparison(&$actual, &$expected)
-            }
+            builder.failed_comparison(&$actual, &$expected)
         }
-    }
+    }}
 }
 
 pub fn assertion_always_succeeds<T>() -> impl Fn(T) -> MatchResult {
-    move |_s: T| MatchResult::Matched { name: "succeeds_always".to_owned() }
+    move |_s: T| MatchResultBuilder::for_("succeeds_always").matched()
 }
 
 pub fn assertion_always_fails<T>() -> impl Fn(T) -> MatchResult {
-    move |_s: T| MatchResult::Failed {
-        name: "fails_always".to_owned(),
-        reason: format_fail_reason("This matcher fails always")
+    move |_s: T| {
+        MatchResultBuilder::for_("fails_always").failed_because("This matcher fails always")
     }
 }
 
@@ -34,11 +31,11 @@ pub fn not<T, M>(matcher: M) -> impl Fn(T) -> MatchResult
 where M: Matcher<T>, {
     move |actual: T| {
         match matcher.check(actual) {
-            MatchResult::Matched { name } => MatchResult::Failed {
-                name: format!("not({})", name),
-                reason: format_fail_reason(&format!("{} is satisfied", name))
-            },
-            MatchResult::Failed { name, .. } => MatchResult::Matched { name: name },
+            MatchResult::Matched { name } =>
+                MatchResultBuilder::for_(&format!("not({})", name))
+                                   .failed_because(&format!("{} is satisfied", name)),
+            MatchResult::Failed { name, .. } =>
+                MatchResultBuilder::for_(&format!("not({})", name)).matched()
         }
     }
 }
@@ -79,29 +76,26 @@ pub fn geq<T: PartialOrd + Debug>(expected: T) -> impl Fn(T) -> MatchResult { gr
 
 pub fn close_to<T>(expected: T, eps: T) -> impl Fn(T) -> MatchResult
 where T: Copy + PartialOrd + std::ops::Add<Output=T> + std::ops::Sub<Output=T> + Debug {
-    move |actual: T|
+    move |actual: T| {
+        let builder = MatchResultBuilder::for_("close_to");
         if expected - eps <= actual && actual <= expected + eps {
-            MatchResult::Matched { name: "close_to".to_owned() }
+            builder.matched()
         } else {
-            MatchResult::Failed {
-                name: "close_to".to_owned(),
-                reason: format_fail_reason(
-                    &format!("{:?} should be between {:?} and {:?}",
-                        actual, expected - eps, expected + eps
-                ))
-            }
+            builder.failed_because(&format!("{:?} should be between {:?} and {:?}",
+                                            actual, expected - eps, expected + eps)
+            )
         }
+    }
 }
 
 pub fn same_object<'a, T>(expected: &'a T) -> impl Fn(&T) -> MatchResult
 where T: Debug {
-    move |actual: &T|
+    move |actual: &T| {
+        let builder = MatchResultBuilder::for_("same_object");
         if (actual as *const _) == (expected as *const _) {
-            MatchResult::Matched { name: "same_object".to_owned() }
+            builder.matched()
         } else {
-            MatchResult::Failed {
-                name: "same_object".to_owned(),
-                reason: format_fail_comparison(&actual, &expected)
-            }
+            builder.failed_comparison(&actual, &expected)
         }
+    }
 }

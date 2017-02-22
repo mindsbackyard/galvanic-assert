@@ -44,6 +44,7 @@ where F: Fn(T) -> MatchResult {
     }
 }
 
+
 pub enum MatchResult {
     Matched {
         name: String
@@ -54,22 +55,41 @@ pub enum MatchResult {
     }
 }
 
-pub fn matched() -> MatchResult {
-    MatchResult::Matched { name: "temporary".to_owned() }
+
+pub struct MatchResultBuilder {
+    matcher_name: String
 }
 
-pub fn failed() -> MatchResult {
-    MatchResult::Failed { name: "temporary".to_owned(), reason: String::new() }
-}
+impl MatchResultBuilder {
+    pub fn new() -> MatchResultBuilder {
+        MatchResultBuilder {
+            matcher_name: "_unknown_".to_owned()
+        }
+    }
 
+    pub fn for_(name: &str) -> MatchResultBuilder {
+        MatchResultBuilder {
+            matcher_name: name.to_owned()
+        }
+    }
 
-pub fn format_fail_reason(reason: &str) -> String {
-    format!("  Because: {}", reason)
-}
+    pub fn matched(self) -> MatchResult {
+        MatchResult::Matched { name: self.matcher_name }
+    }
 
-pub fn format_fail_comparison<T>(actual: &T, expected: &T) -> String
-where T: fmt::Debug {
-    format!("  Expected: {:?}\n  Got: {:?}", expected, actual)
+    pub fn failed_because(self, reason: &str) -> MatchResult {
+        MatchResult::Failed {
+            name: self.matcher_name,
+            reason: format!("  Because: {}", reason)
+        }
+    }
+
+    pub fn failed_comparison<T: fmt::Debug>(self, actual: &T, expected: &T) -> MatchResult {
+        MatchResult::Failed {
+            name: self.matcher_name,
+            reason: format!("  Expected: {:?}\n  Got: {:?}", expected, actual)
+        }
+    }
 }
 
 pub mod matchers;

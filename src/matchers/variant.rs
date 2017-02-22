@@ -7,12 +7,12 @@ use std::mem;
 macro_rules! is_variant {
     ( $variant: path ) => {
         |actual| {
+            let builder = MatchResultBuilder::for_("is_variant");
             match actual {
-                $variant {..} => MatchResult::Matched { name: "is_variant".to_owned() },
-                _ => MatchResult::Failed {
-                        name: "is_variant".to_owned(),
-                        reason: format_fail_reason(&format!("passed variant does not match '{}'", stringify!($variant)))
-                }
+                $variant {..} => builder.matched(),
+                _ => builder.failed_because(
+                        &format!("passed variant does not match '{}'", stringify!($variant))
+                )
             }
         }
     }
@@ -21,14 +21,11 @@ macro_rules! is_variant {
 pub fn same_variant_as<T>(expected: T) -> impl Fn(T) -> MatchResult
 where T: Debug {
     move |actual: T| {
+        let builder = MatchResultBuilder::for_("same_variant_as");
         if mem::discriminant(&actual) == mem::discriminant(&expected) {
-            MatchResult::Matched { name: "same_variant_as".to_owned() }
-
+            builder.matched()
         } else {
-            MatchResult::Failed {
-                    name: "same_variant_as".to_owned(),
-                    reason: format_fail_comparison(&actual, &expected)
-            }
+            builder.failed_comparison(&actual, &expected)
         }
     }
 }
