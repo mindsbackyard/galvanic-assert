@@ -105,6 +105,43 @@ where T: PartialEq + Debug + 'a,
 }
 
 
+pub struct ContainsSubset<T> {
+    expected_elements: Vec<T>
+}
+
+pub fn contains_subset<T,I>(expected_elements: I) -> ContainsSubset<T>
+where T: PartialEq + Debug,
+      I: IntoIterator<Item=T> {
+    ContainsSubset {
+        expected_elements: expected_elements.into_iter().collect()
+    }
+}
+
+impl<'a, T, I> Matcher<I> for ContainsSubset<T>
+where T: PartialEq + Debug + 'a,
+      I: IntoIterator<Item=T> + Debug {
+    fn check(&self, actual: I) -> MatchResult {
+        let repr = format!("{:?}", actual);
+        let builder = MatchResultBuilder::for_("contains_subset");
+        let mut expected_elements = Vec::from_iter(self.expected_elements.iter());
+
+        for element in actual.into_iter() {
+            let maybe_pos = expected_elements.iter()
+                                             .position(|candidate| element == **candidate);
+            if let Some(idx) = maybe_pos {
+                expected_elements.remove(idx);
+            }
+        }
+
+        if !expected_elements.is_empty() {
+            builder.failed_because(
+                &format!("{} did not contain the following elements: {:?}", repr, expected_elements)
+            )
+        } else { builder.matched() }
+    }
+}
+
+
 pub struct ContainedIn<T> {
     expected_to_contain: Vec<T>
 }
@@ -128,6 +165,7 @@ where T: PartialEq + Debug  {
         } else { builder.matched() }
     }
 }
+
 
 pub fn sorted_by<T,I,P>(predicate: P, expected_ordering: std::cmp::Ordering) -> impl Fn(I) -> MatchResult
 where I: IntoIterator<Item=T>,

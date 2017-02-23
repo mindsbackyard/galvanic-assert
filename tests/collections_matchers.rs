@@ -77,6 +77,23 @@ mod contains_in_order {
     }
 }
 
+mod contains_subset {
+    use super::*;
+
+    #[test]
+    fn should_match() {
+        assert_that!(vec![1,2,3,4,5], contains_subset(vec![3,4,1,2]));
+    }
+
+    #[test]
+    fn should_fail_due_to_missing_element() {
+        assert_that!(
+            assert_that!(vec![1,2,4], contains_subset(vec![3,4,1,2])),
+            panics
+        );
+    }
+}
+
 mod contained_in {
     use super::*;
 
