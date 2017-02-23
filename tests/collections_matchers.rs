@@ -414,3 +414,73 @@ mod some_elements_satisfy {
         );
     }
 }
+
+mod has_entry {
+    use super::*;
+
+    mod ordered_map {
+        use super::*;
+
+        #[test]
+        fn should_match() {
+            let mut map = std::collections::BTreeMap::<i32,i32>::new();
+            map.insert(1, 2);
+
+            assert_that!(map, has_entry(&1, 2));
+        }
+
+        #[test]
+        fn should_match_due_to_missing_key() {
+            let map = std::collections::BTreeMap::<i32,i32>::new();
+
+            assert_that!(
+                assert_that!(map, has_entry(&1, 2)),
+                panics
+            );
+        }
+
+        #[test]
+        fn should_match_due_to_wrong_entry() {
+            let mut map = std::collections::BTreeMap::<i32,i32>::new();
+            map.insert(1, 1);
+
+            assert_that!(
+                assert_that!(map, has_entry(&1, 2)),
+                panics
+            );
+        }
+    }
+
+    mod hash_map {
+        use super::*;
+
+        #[test]
+        fn should_match() {
+            let mut map = std::collections::HashMap::<i32,i32>::new();
+            map.insert(1, 2);
+
+            assert_that!(map, has_entry(&1, 2));
+        }
+
+        #[test]
+        fn should_match_due_to_missing_key() {
+            let map = std::collections::HashMap::<i32,i32>::new();
+
+            assert_that!(
+                assert_that!(map, has_entry(&1, 2)),
+                panics
+            );
+        }
+
+        #[test]
+        fn should_match_due_to_wrong_entry() {
+            let mut map = std::collections::HashMap::<i32,i32>::new();
+            map.insert(1, 1);
+
+            assert_that!(
+                assert_that!(map, has_entry(&1, 2)),
+                panics
+            );
+        }
+    }
+}

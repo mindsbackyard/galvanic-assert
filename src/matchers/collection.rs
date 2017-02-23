@@ -304,3 +304,33 @@ where T: Debug,
         }
     }
 }
+
+
+pub struct HasEntry<'a,K:'a,V> {
+    key: &'a K,
+    value: V
+}
+
+pub fn has_entry<K,V>(key: &K, value: V) -> HasEntry<K,V> {
+    HasEntry {
+        key: key,
+        value: value
+    }
+}
+
+impl<'a,K,V,M> Matcher<M> for HasEntry<'a,K,V>
+where V: PartialEq + Debug + std::panic::RefUnwindSafe,
+      K: Debug + 'a + std::panic::RefUnwindSafe,
+      M: std::ops::Index<&'a K, Output=V> + std::panic::RefUnwindSafe {
+
+    fn check(&self, map: M) -> MatchResult {
+        let builder = MatchResultBuilder::for_("has_entry");
+        let maybe_value = std::panic::catch_unwind(|| &map[self.key]);
+
+        match maybe_value {
+            Err(..) => builder.failed_because(&format!("accessing key '{:?}' failed", self.key)),
+            Ok(actual) if &self.value != actual => builder.failed_comparison(&(self.key, actual), &(self.key, &self.value)),
+            Ok(..) => builder.matched()
+        }
+    }
+}
