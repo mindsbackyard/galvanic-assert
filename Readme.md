@@ -1,6 +1,7 @@
 Galvanic-assert: Matcher-based assertions for easier testing
 ============================================================
 [![Build Status](https://travis-ci.org/mindsbackyard/galvanic-assert.svg?branch=master)](https://travis-ci.org/mindsbackyard/galvanic-assert)
+[![Documentation](https://docs.rs/galvanic-assert/badge.svg)](https://docs.rs/galvanic-assert)
 
 This crate provides a new assertion macro `assert_that!` based on **matching predicates** (matchers) to
  * make **writing** asserts easier
@@ -117,8 +118,21 @@ fn everything_is_fine {
 }
 ```
 
-Not much more to say---have a look at the documentation and the growing list of matchers.
-If something is missing or broken, please open an issue or a pull request.
+Not much more to say---have a look at the [documentation](https://docs.rs/galvanic-assert) and the growing list of matchers.
 
 And remember ...
 *only tested code is happy code!*
+
+Contributions
+-------------
+Contributions are very welcome! (Please read and agree with the license.)
+
+The list of included matchers is far from complete.
+If you encounter a useful matcher please open an issue.
+Check before if there's already a boolean predicate on the type itself, e.g., like `Option::is_none()`.
+Those are already supported by the assertion macros and should only be included if the error message of the `Matcher` is substantially better than the default one.
+If something is missing or broken, please open an issue and send (if you want to) a pull request.
+
+For pull requests be sure to include test cases to avoid regressions.
+Tests for `Matchers` should be added as integration tests as they test the integration with the assertion macros.
+Have a look at the existing ones!

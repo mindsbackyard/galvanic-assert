@@ -5,7 +5,9 @@ authors = ["Christopher Bacher <mindsbackyard@gmail.com>"]
 
 description = "A comprehensive set of matcher-based assertions for easier testing"
 
+homepage = "https://github.com/mindsbackyard/galvanic-assert"
 repository = "https://github.com/mindsbackyard/galvanic-assert"
+documentation = "https://docs.rs/galvanic-assert"
 
 readme = "Readme.md"
 
