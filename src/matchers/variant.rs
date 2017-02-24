@@ -13,11 +13,26 @@
  * limitations under the License.
  */
 
+//! The variant module contains matchers for asserting properties of enums.
+
 use std::fmt::Debug;
 use super::super::*;
 
 use std::mem;
 
+/// Matches if the asserted value's variant matches the expected variant.
+///
+/// # Examples
+/// If the enum's variants are already imported one can write:
+/// ```
+/// assert_that!(Ok(4), is_variant!(Ok));
+/// ```
+/// If not then the full path of the variant has to be used:
+/// ```
+/// enum MyEnum { Foo, Bar(i32), Baz{x: i32} }
+///
+/// assert_that!(MyEnum::Baz{x: 2}, is_variant!(MyEnum::Baz));
+/// ```
 #[macro_export]
 macro_rules! is_variant {
     ( $variant: path ) => {
@@ -33,6 +48,7 @@ macro_rules! is_variant {
     }
 }
 
+/// Matches if the asserted value's enum variant matches the expected value's variant.
 pub fn same_variant_as<T>(expected: T) -> impl Fn(T) -> MatchResult
 where T: Debug {
     move |actual: T| {

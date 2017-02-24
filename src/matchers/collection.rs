@@ -13,15 +13,19 @@
  * limitations under the License.
  */
 
+//! The collection module contains matchers for asserting properties of collections and iterators.
+
 use std::fmt::Debug;
 use super::super::*;
 
 use std::iter::FromIterator;
 
+/// Matches if the asserted collection contains *all and only* the expected elements in any order.
 pub struct ContainsInAnyOrder<T> {
     expected_elements: Vec<T>
 }
 
+/// Matches if the asserted collection contains *all and only* of the expected elements in any order.
 pub fn contains_in_any_order<T,I>(expected_elements: I) -> ContainsInAnyOrder<T>
 where T: PartialEq + Debug,
       I: IntoIterator<Item=T> {
@@ -58,11 +62,12 @@ where T: PartialEq + Debug + 'a,
     }
 }
 
-
+/// Matches if the asserted collection contains *all and only* of the expected elements in the given order.
 pub struct ContainsInOrder<T> {
     expected_elements: Vec<T>
 }
 
+/// Matches if the asserted collection contains *all and only* of the expected elements in the given order.
 pub fn contains_in_order<T,I>(expected_elements: I) -> ContainsInOrder<T>
 where T: PartialEq + Debug,
       I: IntoIterator<Item=T> {
@@ -104,11 +109,12 @@ where T: PartialEq + Debug + 'a,
     }
 }
 
-
+/// Matches if the asserted collection contains *all* (possibly more) of the expected elements.
 pub struct ContainsSubset<T> {
     expected_elements: Vec<T>
 }
 
+/// Matches if the asserted collection contains *all* (possibly more) of the expected elements.
 pub fn contains_subset<T,I>(expected_elements: I) -> ContainsSubset<T>
 where T: PartialEq + Debug,
       I: IntoIterator<Item=T> {
@@ -141,11 +147,12 @@ where T: PartialEq + Debug + 'a,
     }
 }
 
-
+/// Matches if the asserted (single) value is contained in the expected elements.
 pub struct ContainedIn<T> {
     expected_to_contain: Vec<T>
 }
 
+/// Matches if the asserted (single) value is contained in the expected elements.
 pub fn contained_in<T,I>(expected_to_contain: I) -> ContainedIn<T>
 where T: PartialEq + Debug,
       I: IntoIterator<Item=T> {
@@ -166,7 +173,11 @@ where T: PartialEq + Debug  {
     }
 }
 
-
+/// Matches if the elements in the asserted collection are sorted weakly monotone according to the given `predicate` in the expected order.
+///
+/// The `predicate` is applied to all consecutive pairs of elements and returns the `Ordering` of the pair.
+/// The ordering is allowed to be weakly monotone, i.e., equal elements are allowed to follow each other.
+/// An empty collection is assumed to be always sorted.
 pub fn sorted_by<T,I,P>(predicate: P, expected_ordering: std::cmp::Ordering) -> impl Fn(I) -> MatchResult
 where I: IntoIterator<Item=T>,
       T: Ord + Debug,
@@ -194,6 +205,11 @@ where I: IntoIterator<Item=T>,
     }
 }
 
+/// Matches if the elements in the asserted collection are sorted strictly monotone according to the given `predicate` in the expected order`.
+///
+/// The `predicate` is applied to all consecutive pairs of elements and returns the `Ordering` of the pair.
+/// The ordering is allowed to be weakly monotone, i.e., equal elements are allowed to follow each other.
+/// An empty collection is assumed to be always sorted.
 pub fn sorted_strictly_by<T,I,P>(predicate: P, expected_ordering: std::cmp::Ordering) -> impl Fn(I) -> MatchResult
 where I: IntoIterator<Item=T>,
       T: Ord + Debug,
@@ -219,6 +235,12 @@ where I: IntoIterator<Item=T>,
     }
 }
 
+/// Matches if the elements in the asserted collection are sorted weakly monotone according to the given `predicate` in any order.
+///
+/// The `predicate` is applied to all consecutive pairs of elements and returns the `Ordering` of the pair.
+/// The first `Ordering` different to `Ordering::Equal` defines the expected order of the collection.
+/// The ordering is allowed to be weakly monotone, i.e., equal elements are allowed to follow each other.
+/// An empty collection is assumed to be always sorted.
 pub fn sorted_by_in_any_order<T,I,P>(predicate: P) -> impl Fn(I) -> MatchResult
 where I: IntoIterator<Item=T>,
       T: Ord + Debug,
@@ -250,6 +272,12 @@ where I: IntoIterator<Item=T>,
     }
 }
 
+/// Matches if the elements in the asserted collection are sorted strictly monotone according to the given `predicate` in any order.
+///
+/// The `predicate` is applied to all consecutive pairs of elements and returns the `Ordering` of the pair.
+/// The first `Ordering` different to `Ordering::Equal` defines the expected order of the collection.
+/// The ordering is allowed to be weakly monotone, i.e., equal elements are allowed to follow each other.
+/// An empty collection is assumed to be always sorted.
 pub fn sorted_strictly_by_in_any_order<T,I,P>(predicate: P) -> impl Fn(I) -> MatchResult
 where I: IntoIterator<Item=T>,
       T: Ord + Debug,
@@ -286,31 +314,45 @@ where I: IntoIterator<Item=T>,
     }
 }
 
+/// Matches if the asserted collection is sorted weakly ascending.
+///
+/// An empty collection is assumed to be always sorted.
 pub fn sorted_ascending<T,I>() -> impl Fn(I) -> MatchResult
 where I: IntoIterator<Item=T>,
       T: Ord + Debug {
     sorted_by(|a: &T, b: &T| a.cmp(b), std::cmp::Ordering::Less)
 }
 
+/// Matches if the asserted collection is sorted strictly ascending.
+///
+/// An empty collection is assumed to be always sorted.
 pub fn sorted_strictly_ascending<T,I>() -> impl Fn(I) -> MatchResult
 where I: IntoIterator<Item=T>,
       T: Ord + Debug {
     sorted_strictly_by(|a: &T, b: &T| a.cmp(b), std::cmp::Ordering::Less)
 }
 
+/// Matches if the asserted collection is sorted weakly descending.
+///
+/// An empty collection is assumed to be always sorted.
 pub fn sorted_descending<T,I>() -> impl Fn(I) -> MatchResult
 where I: IntoIterator<Item=T>,
       T: Ord + Debug {
     sorted_by(|a: &T, b: &T| a.cmp(b), std::cmp::Ordering::Greater)
 }
 
+/// Matches if the asserted collection is sorted strictly descending.
+///
+/// An empty collection is assumed to be always sorted.
 pub fn sorted_strictly_descending<T,I>() -> impl Fn(I) -> MatchResult
 where I: IntoIterator<Item=T>,
       T: Ord + Debug {
     sorted_strictly_by(|a: &T, b: &T| a.cmp(b), std::cmp::Ordering::Greater)
 }
 
-
+/// Matches if all elements in the asserted collection satisfy the given `predicate`.
+///
+/// An empty collection always satisfies this matcher as all (=no) element satisfies the predicate.
 pub fn all_elements_satisfy<T,I,P>(predicate: P) -> impl Fn(I) -> MatchResult
 where T: Debug,
       I: IntoIterator<Item=T>,
@@ -328,7 +370,9 @@ where T: Debug,
     }
 }
 
-
+/// Matches if at least one element in the asserted collection satisfy the given `predicate`.
+///
+/// An empty collection never satisfies this matcher as no element satisfies the predicate.
 pub fn some_elements_satisfy<T,I,P>(predicate: P) -> impl Fn(I) -> MatchResult
 where T: Debug,
       I: IntoIterator<Item=T>,
@@ -343,12 +387,21 @@ where T: Debug,
     }
 }
 
-
+/// Matches if the indexable collection containts the given key/value pair.
+///
+/// The `Matcher` tests if `map[key] == value` succeeds.
+/// If the key is not present in the collection then the index operation is allowed to panic,
+/// but has to be unwind-safe.
 pub struct HasEntry<'a,K:'a,V> {
     key: &'a K,
     value: V
 }
 
+/// Matches if the indexable (map-like) collection containts the given key/value pair.
+///
+/// The `Matcher` tests if `map[key] == value` succeeds.
+/// If the key is not present in the collection then the index operation is allowed to panic,
+/// but has to be unwind-safe.
 pub fn has_entry<K,V>(key: &K, value: V) -> HasEntry<K,V> {
     HasEntry {
         key: key,

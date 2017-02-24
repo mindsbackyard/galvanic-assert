@@ -15,6 +15,7 @@
 
 use super::super::*;
 
+/// Takes a list of matchers for the same type combines them conjunctively.
 #[macro_export]
 macro_rules! all_of {
     ( $matcher: expr ) => {
@@ -25,12 +26,16 @@ macro_rules! all_of {
     };
 }
 
+/// A `Matcher` struct which joins multiple `Matcher`s conjunctively.
+///
+/// Use `of()` to create a new `Matcher` and `and()` to add further `Matcher`s.
 pub struct All<'a, T:'a> {
     matcher: Box<Matcher<&'a T> + 'a>,
     next: Option<Box<All<'a,T>>>
 }
 
 impl<'a, T> All<'a, T> {
+    /// Creates a new conjunctive `Matcher` starting with the given `Matcher`.
     pub fn of<M>(matcher: M) -> All<'a,T>
     where M: Matcher<&'a T> + 'a, T: 'a {
         All {
@@ -39,6 +44,7 @@ impl<'a, T> All<'a, T> {
         }
     }
 
+    /// Adds the given `Matcher` conjunctively.
     pub fn and<M>(self, matcher: M) -> All<'a,T>
     where M: Matcher<&'a T> + 'a, T: 'a {
         All {
@@ -62,6 +68,7 @@ impl<'a,T> Matcher<&'a T> for All<'a,T> {
     }
 }
 
+/// Takes a list of matchers for the same type combines them disjunctively.
 #[macro_export]
 macro_rules! any_of {
     ( $matcher: expr ) => {
@@ -72,12 +79,16 @@ macro_rules! any_of {
     };
 }
 
+/// A `Matcher` struct which joins multiple `Matcher`s disjunctively.
+///
+/// Use `of()` to create a new `Matcher` and `or()` to add further `Matcher`s.
 pub struct Any<'a, T:'a> {
     matcher: Box<Matcher<&'a T> + 'a>,
     next: Option<Box<Any<'a,T>>>
 }
 
 impl<'a, T> Any<'a, T> {
+    /// Creates a new conjunctive `Matcher` starting with the given `Matcher`.
     pub fn of<M>(matcher: M) -> Any<'a,T>
     where M: Matcher<&'a T> + 'a, T: 'a {
         Any {
@@ -86,6 +97,7 @@ impl<'a, T> Any<'a, T> {
         }
     }
 
+    /// Adds the given `Matcher` disjunctively.
     pub fn or<M>(self, matcher: M) -> Any<'a,T>
     where M: Matcher<&'a T> + 'a, T:'a {
         Any {

@@ -20,11 +20,16 @@ use galvanic_assert::*;
 use galvanic_assert::matchers::collection::*;
 
 mod contains_in_any_order {
-    use super::*;
+    use super::{std, Matcher, MatchResult, contains_in_any_order};
 
     #[test]
     fn should_match() {
         assert_that!(vec![1,2,3,4], contains_in_any_order(vec![3,4,1,2]));
+    }
+
+    #[test]
+    fn should_match_empty_collection() {
+        assert_that!(Vec::new(), contains_in_any_order::<i32, Vec<i32>>(Vec::new()));
     }
 
     #[test]
@@ -45,11 +50,16 @@ mod contains_in_any_order {
 }
 
 mod contains_in_order {
-    use super::*;
+    use super::{std, Matcher, MatchResult, contains_in_order};
 
     #[test]
     fn should_match() {
         assert_that!(vec![1,2,3,4], contains_in_order(vec![1,2,3,4]));
+    }
+
+    #[test]
+    fn should_match_empty_collection() {
+        assert_that!(Vec::new(), contains_in_order::<i32, Vec<i32>>(Vec::new()));
     }
 
     #[test]
@@ -78,11 +88,21 @@ mod contains_in_order {
 }
 
 mod contains_subset {
-    use super::*;
+    use super::{std, Matcher, MatchResult, contains_subset};
 
     #[test]
     fn should_match() {
         assert_that!(vec![1,2,3,4,5], contains_subset(vec![3,4,1,2]));
+    }
+
+    #[test]
+    fn should_match_empty_collection() {
+        assert_that!(Vec::new(), contains_subset::<i32, Vec<i32>>(Vec::new()));
+    }
+
+    #[test]
+    fn should_match_empty_subset() {
+        assert_that!(vec![1,2,3,4], contains_subset::<i32, Vec<i32>>(Vec::new()));
     }
 
     #[test]
@@ -95,7 +115,7 @@ mod contains_subset {
 }
 
 mod contained_in {
-    use super::*;
+    use super::{std, Matcher, MatchResult, contained_in};
 
     #[test]
     fn should_match() {
@@ -112,11 +132,16 @@ mod contained_in {
 }
 
 mod sorted_by {
-    use super::*;
+    use super::{std, Matcher, MatchResult, sorted_by};
 
     #[test]
     fn should_match_single_element() {
         assert_that!(vec![1], sorted_by(|a: &i32, b: &i32| a.cmp(b), std::cmp::Ordering::Less));
+    }
+
+    #[test]
+    fn should_match_empty_collection() {
+        assert_that!(Vec::new(), sorted_by(|a: &i32, b: &i32| a.cmp(b), std::cmp::Ordering::Less));
     }
 
     #[test]
@@ -157,11 +182,16 @@ mod sorted_by {
 }
 
 mod sorted_strictly_by {
-    use super::*;
+    use super::{std, Matcher, MatchResult, sorted_strictly_by};
 
     #[test]
     fn should_match_single_element() {
         assert_that!(vec![1], sorted_strictly_by(|a: &i32, b: &i32| a.cmp(b), std::cmp::Ordering::Less));
+    }
+
+    #[test]
+    fn should_match_empty_collection() {
+        assert_that!(Vec::new(), sorted_strictly_by(|a: &i32, b: &i32| a.cmp(b), std::cmp::Ordering::Less));
     }
 
     #[test]
@@ -195,11 +225,16 @@ mod sorted_strictly_by {
 }
 
 mod sorted_by_in_any_order {
-    use super::*;
+    use super::{std, Matcher, MatchResult, sorted_by_in_any_order};
 
     #[test]
     fn should_match_single_element() {
         assert_that!(vec![1], sorted_by_in_any_order(|a: &i32, b: &i32| a.cmp(b)));
+    }
+
+    #[test]
+    fn should_match_empty_collection() {
+        assert_that!(Vec::new(), sorted_by_in_any_order(|a: &i32, b: &i32| a.cmp(b)));
     }
 
     #[test]
@@ -240,11 +275,16 @@ mod sorted_by_in_any_order {
 }
 
 mod sorted_strictly_by_in_any_order {
-    use super::*;
+    use super::{std, Matcher, MatchResult, sorted_strictly_by_in_any_order};
 
     #[test]
     fn should_match_single_element() {
         assert_that!(vec![1], sorted_strictly_by_in_any_order(|a: &i32, b: &i32| a.cmp(b)));
+    }
+
+    #[test]
+    fn should_match_empty_collection() {
+        assert_that!(Vec::new(), sorted_strictly_by_in_any_order(|a: &i32, b: &i32| a.cmp(b)));
     }
 
     #[test]
@@ -283,11 +323,16 @@ mod sorted_strictly_by_in_any_order {
 }
 
 mod sorted_ascending {
-    use super::*;
+    use super::{std, Matcher, MatchResult, sorted_ascending};
 
     #[test]
     fn should_match() {
         assert_that!(vec![1,2,2,4], sorted_ascending());
+    }
+
+    #[test]
+    fn should_match_empty_collection() {
+        assert_that!(Vec::new(), sorted_ascending::<i32, Vec<i32>>());
     }
 
     #[test]
@@ -308,11 +353,16 @@ mod sorted_ascending {
 }
 
 mod sorted_strictly_ascending {
-    use super::*;
+    use super::{std, Matcher, MatchResult, sorted_strictly_ascending};
 
     #[test]
     fn should_match() {
         assert_that!(vec![1,2,3,4], sorted_strictly_ascending());
+    }
+
+    #[test]
+    fn should_match_empty_collection() {
+        assert_that!(Vec::new(), sorted_strictly_ascending::<i32, Vec<i32>>());
     }
 
     #[test]
@@ -341,11 +391,16 @@ mod sorted_strictly_ascending {
 }
 
 mod sorted_descending {
-    use super::*;
+    use super::{std, Matcher, MatchResult, sorted_descending};
 
     #[test]
     fn should_match() {
         assert_that!(vec![4,3,2,1], sorted_descending());
+    }
+
+    #[test]
+    fn should_match_empty_collection() {
+        assert_that!(Vec::new(), sorted_descending::<i32, Vec<i32>>());
     }
 
     #[test]
@@ -366,11 +421,16 @@ mod sorted_descending {
 }
 
 mod sorted_strictly_descending {
-    use super::*;
+    use super::{std, Matcher, MatchResult, sorted_strictly_descending};
 
     #[test]
     fn should_match() {
         assert_that!(vec![4,3,2,1], sorted_strictly_descending());
+    }
+
+    #[test]
+    fn should_match_empty_collection() {
+        assert_that!(Vec::new(), sorted_strictly_descending::<i32, Vec<i32>>());
     }
 
     #[test]
@@ -399,11 +459,16 @@ mod sorted_strictly_descending {
 }
 
 mod all_elements_satisfy {
-    use super::*;
+    use super::{std, Matcher, MatchResult, all_elements_satisfy};
 
     #[test]
     fn should_match() {
         assert_that!(vec![2,4,6,8], all_elements_satisfy(|x| x % 2 == 0));
+    }
+
+    #[test]
+    fn should_match_empty_collection() {
+        assert_that!(Vec::new(), all_elements_satisfy(|x| x % 2 == 0));
     }
 
     #[test]
@@ -416,11 +481,19 @@ mod all_elements_satisfy {
 }
 
 mod some_elements_satisfy {
-    use super::*;
+    use super::{std, Matcher, MatchResult, some_elements_satisfy};
 
     #[test]
     fn should_match() {
         assert_that!(vec![2,3,6,8], some_elements_satisfy(|x| x % 2 == 1));
+    }
+
+    #[test]
+    fn should_fail_empty_collection() {
+        assert_that!(
+            assert_that!(Vec::new(), some_elements_satisfy(|x| x % 2 == 0)),
+            panics
+        );
     }
 
     #[test]
@@ -433,10 +506,10 @@ mod some_elements_satisfy {
 }
 
 mod has_entry {
-    use super::*;
+    use super::{std, Matcher, MatchResult, has_entry};
 
     mod ordered_map {
-        use super::*;
+        use super::{std, Matcher, MatchResult, has_entry};
 
         #[test]
         fn should_match() {
@@ -469,7 +542,7 @@ mod has_entry {
     }
 
     mod hash_map {
-        use super::*;
+        use super::{std, Matcher, MatchResult, has_entry};
 
         #[test]
         fn should_match() {
