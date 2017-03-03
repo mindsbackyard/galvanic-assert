@@ -15,7 +15,7 @@
 
 //! Galvanic-assert: Matcher-based assertions for easier testing
 //! ============================================================
-//! This crate provides a new assertion macro `assert_that!` based on **matching predicates** (matchers) to
+//! This crate provides a new assertion macros (`assert_that!`, `expect_that!`, `get_expectation_for!`) based on **matching predicates** (matchers) to
 //!
 //!  * make **writing** asserts easier
 //!  * make **reading** asserts comprehendable
@@ -35,6 +35,7 @@ use std::fmt::{Debug, Display, Formatter, Result as FormatResult};
 
 /// States that the asserted values satisfies the required properties of the supplied `Matcher`.
 ///
+/// The postulated assertion is verfied immediately and panics if it is not satisfied.
 /// The macro comes in three different forms:
 ///
 ///  1. Assert that some expression is true, supplied with an optional error message.
@@ -95,6 +96,56 @@ macro_rules! assert_that {
     };
 }
 
+/// States that the asserted values satisfies the required properties of the supplied `Matcher`
+/// and returns an `Expectation` object to inspect the results at a later time.
+///
+/// The postulated assertion is verfied immediately,
+/// but the returned `Expectation` defers a potential panic either until `Expectation::verify` is called
+/// or the `Expectation` object is dropped.
+/// It is safe for multiple expectations to fail the assertion code will prevent nested panics.
+///
+/// The macro comes in three different forms:
+///
+///  1. Expect that some expression is true, supplied with an optional error message.
+///
+///     ```rust,ignore
+///     let e1 = get_expectation_for!(EXPRESSION);
+///     let e2 = get_expectation_for!(EXPRESSION, otherwise "some error message");
+///     ```
+///  2. Expect that some expression satifies the properties of some `Matcher`.
+///     The `Matcher` is either predefined, a user defined type with a `Matcher` implementation, or a closure returning a `MatchResult`
+///
+///     ```rust,ignore
+///     let e1 = get_expectation_for!(1, eq(1));
+///     let e2 = get_expectation_for!(1, |x| {
+///         let builder = MatchResultBuilder::for_("my_matcher");
+///         if x == 1 { builder.matched } else { builder.failed_because("some reason") }
+///     })
+///     ```
+///  3. Expect that some expression is expected to panic/not panic.
+///
+///     ```rust,ignore
+///     let e1 = get_expectation_for!(panic!("panic"), panics);
+///     let e2 = get_expectation_for!(1+1, does not panic);
+///     ```
+///
+/// An expectation can be verfied manually
+///
+/// ```rust,ignore
+/// let e1 = get_expectation_for!(1+1, equal_to(0));
+/// let e2 = get_expectation_for!(1+1, less_than(4)); // is executed
+/// e1.verify();
+/// let e3 = get_expectation_for!(1+1, panics); // is never executed as e1 panics
+/// ```
+/// or is automatically verfied on drop.
+///
+/// ```rust,ignore
+/// {
+///     let e1 = get_expectation_for!(1+1, equal_to(0));
+///     let e2 = get_expectation_for!(1+1, less_than(4)); // is executed
+/// }
+/// let e3 = get_expectation_for!(1+1, panics); // is never executed as e1 panics
+/// ```
 #[macro_export]
 macro_rules! get_expectation_for {
     ( $actual: expr, panics ) => {{
@@ -145,6 +196,57 @@ macro_rules! get_expectation_for {
             }
         }
     }};
+}
+
+/// States that the asserted values satisfies the required properties of the supplied `Matcher`
+/// but waits until the end of the block to inspect the results.
+///
+/// The postulated assertion is verfied immediately,
+/// but a potential panic is deferred until the end of the block wherein the expectation is stated.
+/// It is safe for multiple expectations to fail.
+/// The assertion code will prevent nested panics.
+///
+/// The macro comes in three different forms:
+///
+///  1. Expect that some expression is true, supplied with an optional error message.
+///
+///     ```rust,ignore
+///     expect_that!(EXPRESSION);
+///     expect_that!(EXPRESSION, otherwise "some error message");
+///     ```
+///  2. Expect that some expression satifies the properties of some `Matcher`.
+///     The `Matcher` is either predefined, a user defined type with a `Matcher` implementation, or a closure returning a `MatchResult`
+///
+///     ```rust,ignore
+///     expect_that!(1, eq(1));
+///     expect_that!(1, |x| {
+///         let builder = MatchResultBuilder::for_("my_matcher");
+///         if x == 1 { builder.matched } else { builder.failed_because("some reason") }
+///     })
+///     ```
+///  3. Expect that some expression is expected to panic/not panic.
+///
+///     ```rust,ignore
+///     expect_that!(panic!("panic"), panics);
+///     expect_that!(1+1, does not panic);
+///     ```
+///
+/// An expectation is verified at the end of the block it is stated in:
+///
+/// ```rust,ignore
+/// {
+///     expect_that!(1+1, equal_to(0));
+///     expect_that!(1+1, less_than(4)); // is executed
+/// }
+/// expect_that!(1+1, panics); // is never executed as e1 panics
+/// ```
+#[macro_export]
+macro_rules! expect_that {
+    ( $actual: expr, panics ) => { #[allow(unused_variables)] let expectation = get_expectation_for!($actual, panics); };
+    ( $actual: expr, does not panic ) => { #[allow(unused_variables)] let expectation = get_expectation_for!($actual, does not panic); };
+    ( $actual: expr) => { #[allow(unused_variables)] let expectation = get_expectation_for!($actual); };
+    ( $actual: expr , otherwise $reason: expr ) => { #[allow(unused_variables)] let expectation = get_expectation_for!($actual, otherwise $reason); };
+    ( $actual: expr, $matcher: expr ) => { #[allow(unused_variables)] let expectation = get_expectation_for!($actual, $matcher); };
 }
 
 /// The trait which has to be implemented by all matchers.
@@ -228,17 +330,25 @@ impl MatchResultBuilder {
     }
 }
 
+/// The result of a deferred assertion.
+///
+///
 pub enum Expectation {
     Failed {
+        /// A representation of the failed assertion.
         assertion: String,
+        /// The file where the expection has been created.
         file: String,
+        /// The source code line where the expectation has been created.
         line: u32,
+        /// The reason why the expectation has not been met.
         error_msg: String
     },
     Satisfied
 }
 
 impl Expectation {
+    /// Creates a failed `Expectation`
     pub fn failed(assertion:String, file: String, line: u32, error_msg: String) -> Expectation {
         Expectation::Failed {
             assertion: assertion,
@@ -248,13 +358,18 @@ impl Expectation {
         }
     }
 
+    /// Create a satisfied `Expectation`
     pub fn satisfied() -> Expectation {
         Expectation::Satisfied
     }
 
+    /// Verifies if the asseration given by the `Expectation` held.
+    ///
+    /// Panics if the verification fails.
     pub fn verify(self) { /* drop self */ }
 }
 
+/// If the `Expectation` is dropped it is automatically verified.
 impl Drop for Expectation {
     fn drop(&mut self) {
         if let &mut Expectation::Failed { .. } = self {

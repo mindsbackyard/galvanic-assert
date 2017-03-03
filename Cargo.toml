@@ -1,9 +1,9 @@
 [package]
 name = "galvanic-assert"
-version = "0.5.1"
+version = "0.6.0"
 authors = ["Christopher Bacher <mindsbackyard@gmail.com>"]
 
-description = """A comprehensive set of matcher-based assertions for easier testing.
+description = """A comprehensive set of matcher-based assertions and expectations for easier testing.
 
 Support for checking properties of numbers, objects, enum variants, collections, panics, and more.
 It is easy to write your own assertions.

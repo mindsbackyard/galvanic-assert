@@ -1,9 +1,9 @@
-Galvanic-assert: Matcher-based assertions for easier testing
-============================================================
+Galvanic-assert: Matcher-based assertions and expectations for easier testing
+=============================================================================
 [![Build Status](https://travis-ci.org/mindsbackyard/galvanic-assert.svg?branch=master)](https://travis-ci.org/mindsbackyard/galvanic-assert)
 [![Documentation](https://docs.rs/galvanic-assert/badge.svg)](https://docs.rs/galvanic-assert)
 
-This crate provides a new assertion macro `assert_that!` based on **matching predicates** (matchers) to
+This crate provides a new assertion macros (`assert_that!`, `expect_that!`, `get_expectation_for!`) based on **matching predicates** (matchers) to
  * make **writing** asserts easier
  * make **reading** asserts comprehendable
  * easily **extend** the assertion framework
@@ -116,6 +116,42 @@ fn press_faulty_red_button() {
 fn everything_is_fine {
     assert_that!(press_faulty_red_button(), does not panic);
 }
+```
+
+Another 2-minutes for learning about expectations
+-------------------------------------------------
+An assertion is immediately check for correctness.
+That means that any later assertion is executed and you might lose valuable information for debugging the error.
+Basically you want as much information as possible to do that.
+Therefore the the macros `expect_that!` and `get_expectation_for!` have been introduced.
+
+Both state an expectation instead of an assertion in exactly the same way as `assert_that!`---so anything you learned from the last sectio still applies.
+The condition is still checked at the point of specification but the inspection of the result is deferred to a later point in time.
+
+The `expect_that!` macro defers the inspection of the result until the end of the current block:
+```rust
+{
+    expect_that!(1+1, equal_to(0));
+    expect_that!(1+1, less_than(4)); // is executed
+}
+expect_that!(1+1, panics); // is never executed as e1 panics
+```
+
+The `get_expectation_for!` macro allows for more fine grained control.
+It returns an `Expectation` object which can be verified by calling `verify` ...
+```rust
+let e1 = get_expectation_for!(1+1, equal_to(0));
+let e2 = get_expectation_for!(1+1, less_than(4)); // is executed
+e1.verify();
+let e3 = get_expectation_for!(1+1, panics); // is never executed as e1 panics
+```
+... or will be automatically verified once the object goes out of scope.
+```rust
+{
+    let e1 = get_expectation_for!(1+1, equal_to(0));
+    let e2 = get_expectation_for!(1+1, less_than(4)); // is executed
+}
+let e3 = get_expectation_for!(1+1, panics); // is never executed as e1 panics
 ```
 
 Not much more to say---have a look at the [documentation](https://docs.rs/galvanic-assert) and the growing list of matchers.
