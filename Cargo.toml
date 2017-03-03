@@ -7,7 +7,8 @@ description = """A comprehensive set of matcher-based assertions for easier test
 
 Support for checking properties of numbers, objects, enum variants, collections, panics, and more.
 It is easy to write your own assertions.
-Part of the galvanic test framework."""
+Part of the galvanic test framework. (in development)
+Can also be used with another test framework of your choice."""
 
 homepage = "https://github.com/mindsbackyard/galvanic-assert"
 repository = "https://github.com/mindsbackyard/galvanic-assert"
@@ -21,3 +22,6 @@ keywords = ["test", "assert", "matching", "fluent"]
 categories = ["development-tools::testing"]
 
 [dependencies]
+
+[badges]
+travis-ci = { repository = "mindsbackyard/galvanic-assert" }
