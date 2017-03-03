@@ -19,36 +19,38 @@ use super::super::*;
 #[macro_export]
 macro_rules! all_of {
     ( $matcher: expr ) => {
-        All::of($matcher)
+        Box::new(All::of($matcher))
     };
     ( $matcher: expr, $($matchers: expr),* ) => {
-        All::of($matcher)$(.and($matchers))*
+        Box::new(All::of($matcher)$(.and($matchers))*)
     };
+}
+
+pub fn box_all<'a,T:'a>(combinator: Any<'a,T>) -> Box<Matcher<&'a T> + 'a> {
+    Box::new(move |actual: &'a T| combinator.check(actual))
 }
 
 /// A `Matcher` struct which joins multiple `Matcher`s conjunctively.
 ///
 /// Use `of()` to create a new `Matcher` and `and()` to add further `Matcher`s.
 pub struct All<'a, T:'a> {
-    matcher: Box<Matcher<&'a T> + 'a>,
-    next: Option<Box<All<'a,T>>>
+    pub matcher: Box<Matcher<&'a T> + 'a>,
+    pub next: Option<Box<All<'a,T>>>
 }
 
 impl<'a,T:'a> All<'a, T> {
     /// Creates a new conjunctive `Matcher` starting with the given `Matcher`.
-    pub fn of<M>(matcher: M) -> All<'a,T>
-    where M: Matcher<&'a T> + 'a, T: 'a {
+    pub fn of(matcher: Box<Matcher<&'a T> + 'a>) -> All<'a,T> {
         All {
-            matcher: Box::new(matcher),
+            matcher: matcher,
             next: None
         }
     }
 
     /// Adds the given `Matcher` conjunctively.
-    pub fn and<M>(self, matcher: M) -> All<'a,T>
-    where M: Matcher<&'a T> + 'a, T: 'a {
+    pub fn and(self, matcher: Box<Matcher<&'a T> + 'a>) -> All<'a,T> {
         All {
-            matcher: Box::new(matcher),
+            matcher: matcher,
             next: Some(Box::new(self))
         }
     }
@@ -72,36 +74,38 @@ impl<'a,T:'a> Matcher<&'a T> for All<'a,T> {
 #[macro_export]
 macro_rules! any_of {
     ( $matcher: expr ) => {
-        Any::of($matcher)
+        Box::new(Any::of($matcher))
     };
     ( $matcher: expr, $($matchers: expr),* ) => {
-        Any::of($matcher)$(.or($matchers))*
+        Box::new(Any::of($matcher)$(.or($matchers))*)
     };
+}
+
+pub fn box_any<'a,T:'a>(combinator: Any<'a,T>) -> Box<Matcher<&'a T> + 'a> {
+    Box::new(move |actual: &'a T| combinator.check(actual))
 }
 
 /// A `Matcher` struct which joins multiple `Matcher`s disjunctively.
 ///
 /// Use `of()` to create a new `Matcher` and `or()` to add further `Matcher`s.
 pub struct Any<'a, T:'a> {
-    matcher: Box<Matcher<&'a T> + 'a>,
-    next: Option<Box<Any<'a,T>>>
+    pub matcher: Box<Matcher<&'a T> + 'a>,
+    pub next: Option<Box<Any<'a,T>>>
 }
 
 impl<'a,T:'a> Any<'a, T> {
     /// Creates a new conjunctive `Matcher` starting with the given `Matcher`.
-    pub fn of<M>(matcher: M) -> Any<'a,T>
-    where M: Matcher<&'a T> + 'a, T: 'a {
+    pub fn of(matcher: Box<Matcher<&'a T> + 'a>) -> Any<'a,T> {
         Any {
-            matcher: Box::new(matcher),
+            matcher: matcher,
             next: None
         }
     }
 
     /// Adds the given `Matcher` disjunctively.
-    pub fn or<M>(self, matcher: M) -> Any<'a,T>
-    where M: Matcher<&'a T> + 'a, T:'a {
+    pub fn or(self, matcher: Box<Matcher<&'a T> + 'a>) -> Any<'a,T> {
         Any {
-            matcher: Box::new(matcher),
+            matcher: matcher,
             next: Some(Box::new(self))
         }
     }

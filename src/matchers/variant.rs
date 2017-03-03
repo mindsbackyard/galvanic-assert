@@ -49,14 +49,14 @@ macro_rules! is_variant {
 }
 
 /// Matches if the asserted value's enum variant matches the expected value's variant.
-pub fn same_variant_as<T>(expected: T) -> impl Fn(T) -> MatchResult
-where T: Debug {
-    move |actual: T| {
+pub fn same_variant_as<'a,  T>(expected: T) -> Box<Matcher<T> + 'a>
+where T: Debug + 'a {
+    Box::new(move |actual: T| {
         let builder = MatchResultBuilder::for_("same_variant_as");
         if mem::discriminant(&actual) == mem::discriminant(&expected) {
             builder.matched()
         } else {
             builder.failed_comparison(&actual, &expected)
         }
-    }
+    })
 }

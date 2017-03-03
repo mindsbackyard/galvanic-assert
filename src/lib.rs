@@ -28,7 +28,6 @@
 //!
 //! **galvanic-assert** currently requires *nightly* until *impl trait* returns have been stabilized.
 
-#![feature(conservative_impl_trait)]
 #![feature(discriminant_value)]
 
 use std::fmt::{Debug, Display, Formatter, Result as FormatResult};
@@ -259,7 +258,7 @@ pub trait Matcher<T> {
 ///
 /// The closure must be repeatably callable in case that the matcher is combined with another matcher.
 impl<T, F> Matcher<T> for F
-where F: Fn(T) -> MatchResult {
+where F: Fn(T) -> MatchResult + ?Sized {
     fn check(&self, actual: T) -> MatchResult {
         self(actual)
     }

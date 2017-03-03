@@ -178,11 +178,11 @@ where T: PartialEq + Debug  {
 /// The `predicate` is applied to all consecutive pairs of elements and returns the `Ordering` of the pair.
 /// The ordering is allowed to be weakly monotone, i.e., equal elements are allowed to follow each other.
 /// An empty collection is assumed to be always sorted.
-pub fn sorted_by<T,I,P>(predicate: P, expected_ordering: std::cmp::Ordering) -> impl Fn(I) -> MatchResult
+pub fn sorted_by<T,I,P>(predicate: P, expected_ordering: std::cmp::Ordering) -> Box<Fn(I) -> MatchResult>
 where I: IntoIterator<Item=T>,
       T: Ord + Debug,
-      P: Fn(&T,&T) -> std::cmp::Ordering {
-    move |elements: I| {
+      P: Fn(&T,&T) -> std::cmp::Ordering + 'static {
+    Box::new(move |elements: I| {
         let builder = MatchResultBuilder::for_("sorted_by");
         let mut iter = elements.into_iter();
         let maybe_prev = iter.next();
@@ -202,7 +202,7 @@ where I: IntoIterator<Item=T>,
             prev = cur;
         }
         builder.matched()
-    }
+    })
 }
 
 /// Matches if the elements in the asserted collection are sorted strictly monotone according to the given `predicate` in the expected order`.
@@ -210,11 +210,11 @@ where I: IntoIterator<Item=T>,
 /// The `predicate` is applied to all consecutive pairs of elements and returns the `Ordering` of the pair.
 /// The ordering is allowed to be weakly monotone, i.e., equal elements are allowed to follow each other.
 /// An empty collection is assumed to be always sorted.
-pub fn sorted_strictly_by<T,I,P>(predicate: P, expected_ordering: std::cmp::Ordering) -> impl Fn(I) -> MatchResult
+pub fn sorted_strictly_by<T,I,P>(predicate: P, expected_ordering: std::cmp::Ordering) -> Box<Fn(I) -> MatchResult>
 where I: IntoIterator<Item=T>,
       T: Ord + Debug,
-      P: Fn(&T,&T) -> std::cmp::Ordering {
-    move |elements: I| {
+      P: Fn(&T,&T) -> std::cmp::Ordering + 'static {
+    Box::new(move |elements: I| {
         let builder = MatchResultBuilder::for_("sorted_strictly_by");
         let mut iter = elements.into_iter();
         let maybe_prev = iter.next();
@@ -232,7 +232,7 @@ where I: IntoIterator<Item=T>,
             prev = cur;
         }
         builder.matched()
-    }
+    })
 }
 
 /// Matches if the elements in the asserted collection are sorted weakly monotone according to the given `predicate` in any order.
@@ -241,11 +241,11 @@ where I: IntoIterator<Item=T>,
 /// The first `Ordering` different to `Ordering::Equal` defines the expected order of the collection.
 /// The ordering is allowed to be weakly monotone, i.e., equal elements are allowed to follow each other.
 /// An empty collection is assumed to be always sorted.
-pub fn sorted_by_in_any_order<T,I,P>(predicate: P) -> impl Fn(I) -> MatchResult
+pub fn sorted_by_in_any_order<T,I,P>(predicate: P) -> Box<Fn(I) -> MatchResult>
 where I: IntoIterator<Item=T>,
       T: Ord + Debug,
-      P: Fn(&T,&T) -> std::cmp::Ordering {
-    move |elements: I| {
+      P: Fn(&T,&T) -> std::cmp::Ordering + 'static {
+    Box::new(move |elements: I| {
         let builder = MatchResultBuilder::for_("sorted_by_in_any_order");
         let mut iter = elements.into_iter();
         let mut expected_ordering: Option<std::cmp::Ordering> = None;
@@ -269,7 +269,7 @@ where I: IntoIterator<Item=T>,
             prev = cur;
         }
         builder.matched()
-    }
+    })
 }
 
 /// Matches if the elements in the asserted collection are sorted strictly monotone according to the given `predicate` in any order.
@@ -278,11 +278,11 @@ where I: IntoIterator<Item=T>,
 /// The first `Ordering` different to `Ordering::Equal` defines the expected order of the collection.
 /// The ordering is allowed to be weakly monotone, i.e., equal elements are allowed to follow each other.
 /// An empty collection is assumed to be always sorted.
-pub fn sorted_strictly_by_in_any_order<T,I,P>(predicate: P) -> impl Fn(I) -> MatchResult
+pub fn sorted_strictly_by_in_any_order<T,I,P>(predicate: P) -> Box<Fn(I) -> MatchResult>
 where I: IntoIterator<Item=T>,
       T: Ord + Debug,
-      P: Fn(&T,&T) -> std::cmp::Ordering {
-    move |elements: I| {
+      P: Fn(&T,&T) -> std::cmp::Ordering + 'static {
+    Box::new(move |elements: I| {
         let builder = MatchResultBuilder::for_("sorted_strictly_by_in_any_order");
         let mut iter = elements.into_iter();
         let mut expected_ordering: Option<std::cmp::Ordering> = None;
@@ -311,13 +311,13 @@ where I: IntoIterator<Item=T>,
             prev = cur;
         }
         builder.matched()
-    }
+    })
 }
 
 /// Matches if the asserted collection is sorted weakly ascending.
 ///
 /// An empty collection is assumed to be always sorted.
-pub fn sorted_ascending<T,I>() -> impl Fn(I) -> MatchResult
+pub fn sorted_ascending<T,I>() -> Box<Fn(I) -> MatchResult>
 where I: IntoIterator<Item=T>,
       T: Ord + Debug {
     sorted_by(|a: &T, b: &T| a.cmp(b), std::cmp::Ordering::Less)
@@ -326,7 +326,7 @@ where I: IntoIterator<Item=T>,
 /// Matches if the asserted collection is sorted strictly ascending.
 ///
 /// An empty collection is assumed to be always sorted.
-pub fn sorted_strictly_ascending<T,I>() -> impl Fn(I) -> MatchResult
+pub fn sorted_strictly_ascending<T,I>() -> Box<Fn(I) -> MatchResult>
 where I: IntoIterator<Item=T>,
       T: Ord + Debug {
     sorted_strictly_by(|a: &T, b: &T| a.cmp(b), std::cmp::Ordering::Less)
@@ -335,7 +335,7 @@ where I: IntoIterator<Item=T>,
 /// Matches if the asserted collection is sorted weakly descending.
 ///
 /// An empty collection is assumed to be always sorted.
-pub fn sorted_descending<T,I>() -> impl Fn(I) -> MatchResult
+pub fn sorted_descending<T,I>() -> Box<Fn(I) -> MatchResult>
 where I: IntoIterator<Item=T>,
       T: Ord + Debug {
     sorted_by(|a: &T, b: &T| a.cmp(b), std::cmp::Ordering::Greater)
@@ -344,7 +344,7 @@ where I: IntoIterator<Item=T>,
 /// Matches if the asserted collection is sorted strictly descending.
 ///
 /// An empty collection is assumed to be always sorted.
-pub fn sorted_strictly_descending<T,I>() -> impl Fn(I) -> MatchResult
+pub fn sorted_strictly_descending<T,I>() -> Box<Fn(I) -> MatchResult>
 where I: IntoIterator<Item=T>,
       T: Ord + Debug {
     sorted_strictly_by(|a: &T, b: &T| a.cmp(b), std::cmp::Ordering::Greater)
@@ -353,11 +353,11 @@ where I: IntoIterator<Item=T>,
 /// Matches if all elements in the asserted collection satisfy the given `predicate`.
 ///
 /// An empty collection always satisfies this matcher as all (=no) element satisfies the predicate.
-pub fn all_elements_satisfy<T,I,P>(predicate: P) -> impl Fn(I) -> MatchResult
+pub fn all_elements_satisfy<T,I,P>(predicate: P) -> Box<Fn(I) -> MatchResult>
 where T: Debug,
       I: IntoIterator<Item=T>,
-      P: Fn(&T) -> bool {
-    move |elements: I| {
+      P: Fn(&T) -> bool + 'static {
+    Box::new(move |elements: I| {
         let builder = MatchResultBuilder::for_("all_elements_satisfy");
         let nonsatisfying_elements: Vec<_> = elements.into_iter().filter(|e| !predicate(e)).collect();
         if !nonsatisfying_elements.is_empty() {
@@ -367,24 +367,24 @@ where T: Debug,
         } else {
             builder.matched()
         }
-    }
+    })
 }
 
 /// Matches if at least one element in the asserted collection satisfy the given `predicate`.
 ///
 /// An empty collection never satisfies this matcher as no element satisfies the predicate.
-pub fn some_elements_satisfy<T,I,P>(predicate: P) -> impl Fn(I) -> MatchResult
+pub fn some_elements_satisfy<T,I,P>(predicate: P) -> Box<Fn(I) -> MatchResult>
 where T: Debug,
       I: IntoIterator<Item=T>,
-      P: Fn(&T) -> bool {
-    move |elements: I| {
+      P: Fn(&T) -> bool + 'static {
+    Box::new(move |elements: I| {
         let builder = MatchResultBuilder::for_("some_elements_satisfy");
         if !elements.into_iter().any(|ref e| predicate(e)) {
             builder.failed_because("no elements satisfy the predicate")
         } else {
             builder.matched()
         }
-    }
+    })
 }
 
 /// Matches if the indexable collection containts the given key/value pair.
