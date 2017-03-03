@@ -31,7 +31,7 @@
 #![feature(conservative_impl_trait)]
 #![feature(discriminant_value)]
 
-use std::fmt::{Debug};
+use std::fmt::{Debug, Display, Formatter, Result as FormatResult};
 
 /// States that the asserted values satisfies the required properties of the supplied `Matcher`.
 ///
@@ -93,6 +93,58 @@ macro_rules! assert_that {
             }
         }
     };
+}
+
+#[macro_export]
+macro_rules! get_expectation_for {
+    ( $actual: expr, panics ) => {{
+        let result = std::panic::catch_unwind(|| { $actual; });
+        if result.is_ok() {
+            let assertion = format!("'{}, panics'", stringify!($actual));
+            Expectation::failed(assertion, file!().to_string(), line!(),
+                                "Expected expression to panic".to_string()
+            )
+        } else {
+            Expectation::satisfied()
+        }
+    }};
+    ( $actual: expr, does not panic ) => {{
+        let result = std::panic::catch_unwind(|| { $actual; });
+        if result.is_err() {
+            let assertion = format!("'{}, does not panic'", stringify!($actual));
+            Expectation::failed(assertion, file!().to_string(), line!(),
+                                "Expression panicked unexpectantly".to_string()
+            )
+        } else { Expectation::satisfied() }
+    }};
+    ( $actual: expr) => {{
+        if !$actual {
+            let assertion = format!("'{}' is true", stringify!($actual));
+            Expectation::failed(assertion, file!().to_string(), line!(),
+                                format!("'{}' is not true", stringify!($actual))
+            )
+        } else { Expectation::satisfied() }
+    }};
+    ( $actual: expr , otherwise $reason: expr ) => {{
+        if !$actual {
+            let assertion = format!("'{}' is true", stringify!($actual));
+            Expectation::failed(assertion, file!().to_string(), line!(),
+                                format!("'{}' is not true,\n\tBecause: {}",
+                                        stringify!($actual), $reason)
+            )
+        } else { Expectation::satisfied() }
+    }};
+    ( $actual: expr, $matcher: expr ) => {{
+        match $matcher.check($actual) {
+            MatchResult::Matched { .. } => { Expectation::satisfied() },
+            MatchResult::Failed { name, reason } => {
+                let assertion = format!("'{}' matches '{}'", stringify!($actual), stringify!($matcher));
+                Expectation::failed(assertion, file!().to_string(), line!(),
+                                    format!("Failed assertion of matcher: {}\n{}", name, reason)
+                )
+            }
+        }
+    }};
 }
 
 /// The trait which has to be implemented by all matchers.
@@ -172,6 +224,57 @@ impl MatchResultBuilder {
         MatchResult::Failed {
             name: self.matcher_name,
             reason: format!("  Expected: {:?}\n  Got: {:?}", expected, actual)
+        }
+    }
+}
+
+pub enum Expectation {
+    Failed {
+        assertion: String,
+        file: String,
+        line: u32,
+        error_msg: String
+    },
+    Satisfied
+}
+
+impl Expectation {
+    pub fn failed(assertion:String, file: String, line: u32, error_msg: String) -> Expectation {
+        Expectation::Failed {
+            assertion: assertion,
+            file: file,
+            line: line,
+            error_msg: error_msg
+        }
+    }
+
+    pub fn satisfied() -> Expectation {
+        Expectation::Satisfied
+    }
+
+    pub fn verify(self) { /* drop self */ }
+}
+
+impl Drop for Expectation {
+    fn drop(&mut self) {
+        if let &mut Expectation::Failed { .. } = self {
+            println!("{}", self);
+            if !std::thread::panicking() {
+                panic!("Some expectations failed.")
+            }
+        }
+    }
+}
+
+impl Display for Expectation {
+    fn fmt(&self, f: &mut Formatter) -> FormatResult {
+        match self {
+            &Expectation::Failed { ref assertion, ref file, ref line, ref error_msg } => {
+                write!(f, "Expectation '{}' failed, originating from {}:{}\n\t{}",
+                       assertion, file, line, error_msg
+                )
+            },
+            _ => write!(f, "The expectation has been satisfied")
         }
     }
 }
