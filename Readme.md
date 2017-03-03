@@ -2,6 +2,7 @@ Galvanic-assert: Matcher-based assertions and expectations for easier testing
 =============================================================================
 [![Build Status](https://travis-ci.org/mindsbackyard/galvanic-assert.svg?branch=master)](https://travis-ci.org/mindsbackyard/galvanic-assert)
 [![Documentation](https://docs.rs/galvanic-assert/badge.svg)](https://docs.rs/galvanic-assert)
+[![Crates.io](https://img.shields.io/crates/v/galvanic-assert.svg)](https://crates.io/crates/galvanic-assert)
 
 This crate provides a new assertion macros (`assert_that!`, `expect_that!`, `get_expectation_for!`) based on **matching predicates** (matchers) to
  * make **writing** asserts easier
