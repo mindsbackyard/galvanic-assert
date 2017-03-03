@@ -18,7 +18,7 @@ readme = "Readme.md"
 
 license = "Apache-2.0"
 
-keywords = ["test", "assert", "matching", "fluent"]
+keywords = ["test", "assert", "matching", "fluent", "hamcrest"]
 categories = ["development-tools::testing"]
 
 [dependencies]
