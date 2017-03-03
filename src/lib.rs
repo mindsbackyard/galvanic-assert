@@ -31,7 +31,7 @@
 #![feature(conservative_impl_trait)]
 #![feature(discriminant_value)]
 
-use std::fmt;
+use std::fmt::{Display, Debug, Formatter, Result as FormatResult};
 
 /// States that the asserted values satisfies the required properties of the supplied `Matcher`.
 ///
@@ -70,7 +70,7 @@ macro_rules! assert_that {
     ( $actual: expr, does not panic ) => {
         let result = std::panic::catch_unwind(|| { $actual; });
         if result.is_err() {
-            panic!("\nFailed assertion; expected expression to panic")
+            panic!("\nFailed assertion; expression panicked unexpectantly")
         }
     };
     ( $actual: expr) => {
@@ -168,7 +168,7 @@ impl MatchResultBuilder {
     /// Finalzes the builder indicating that the `Matcher` failed to the inspected value.
     ///
     /// The `actual` and `expected` value are used the generate a useful error message.
-    pub fn failed_comparison<T: fmt::Debug>(self, actual: &T, expected: &T) -> MatchResult {
+    pub fn failed_comparison<T: Debug>(self, actual: &T, expected: &T) -> MatchResult {
         MatchResult::Failed {
             name: self.matcher_name,
             reason: format!("  Expected: {:?}\n  Got: {:?}", expected, actual)
