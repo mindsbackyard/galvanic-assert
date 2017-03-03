@@ -84,3 +84,15 @@ mod any_of {
         );
     }
 }
+
+mod combining_combinators {
+    use super::*;
+
+    #[test]
+    fn should_match() {
+        let x = 1;
+        assert_that!(&x, any_of!(all_of!(assertion_always_succeeds(), assertion_always_succeeds()),
+                                 all_of!(assertion_always_fails(), assertion_always_succeeds())
+        ));
+    }
+}
