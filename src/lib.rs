@@ -31,7 +31,7 @@
 #![feature(conservative_impl_trait)]
 #![feature(discriminant_value)]
 
-use std::fmt::{Display, Debug, Formatter, Result as FormatResult};
+use std::fmt::{Debug};
 
 /// States that the asserted values satisfies the required properties of the supplied `Matcher`.
 ///
