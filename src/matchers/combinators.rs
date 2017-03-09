@@ -34,7 +34,7 @@ pub struct All<'a, T:'a> {
     next: Option<Box<All<'a,T>>>
 }
 
-impl<'a, T> All<'a, T> {
+impl<'a,T:'a> All<'a, T> {
     /// Creates a new conjunctive `Matcher` starting with the given `Matcher`.
     pub fn of<M>(matcher: M) -> All<'a,T>
     where M: Matcher<&'a T> + 'a, T: 'a {
@@ -54,7 +54,7 @@ impl<'a, T> All<'a, T> {
     }
 }
 
-impl<'a,T> Matcher<&'a T> for All<'a,T> {
+impl<'a,T:'a> Matcher<&'a T> for All<'a,T> {
     fn check(&self, actual: &'a T) -> MatchResult {
         match self.matcher.check(actual) {
             x@MatchResult::Matched {..} => {
@@ -87,7 +87,7 @@ pub struct Any<'a, T:'a> {
     next: Option<Box<Any<'a,T>>>
 }
 
-impl<'a, T> Any<'a, T> {
+impl<'a,T:'a> Any<'a, T> {
     /// Creates a new conjunctive `Matcher` starting with the given `Matcher`.
     pub fn of<M>(matcher: M) -> Any<'a,T>
     where M: Matcher<&'a T> + 'a, T: 'a {
@@ -107,7 +107,7 @@ impl<'a, T> Any<'a, T> {
     }
 }
 
-impl<'a,T> Matcher<&'a T> for Any<'a,T> {
+impl<'a,T:'a> Matcher<&'a T> for Any<'a,T> {
     fn check(&self, actual: &'a T) -> MatchResult {
         match self.matcher.check(actual) {
             MatchResult::Matched {..} => MatchResult::Matched { name: "any_of".to_owned() },
