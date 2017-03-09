@@ -89,10 +89,24 @@ mod combining_combinators {
     use super::*;
 
     #[test]
-    fn should_match() {
+    fn should_match_combined_any_all() {
         let x = 1;
         assert_that!(&x, any_of!(all_of!(assertion_always_succeeds(), assertion_always_succeeds()),
-                                 all_of!(assertion_always_fails(), assertion_always_succeeds())
+                                 all_of!(assertion_always_succeeds(), assertion_always_succeeds())
         ));
+    }
+
+    #[test]
+    fn should_match_combined_all_any() {
+        let x = 1;
+        assert_that!(&x, all_of!(any_of!(assertion_always_succeeds(), assertion_always_succeeds()),
+                                 any_of!(assertion_always_fails(), assertion_always_succeeds())
+        ));
+    }
+
+    #[test]
+    fn should_match_combined_not_any() {
+        let x = 1;
+        assert_that!(&x, not(any_of!(assertion_always_fails(), assertion_always_fails())));
     }
 }
