@@ -14,8 +14,6 @@ This crate provides a new assertion macros (`assert_that!`, `expect_that!`, `get
 
 The crate will be part of **galvanic**---a complete test framework for **Rust**.
 
-**galvanic-assert** currently requires *nightly* until *impl trait* returns have been stabilized.
-
 The 2-minute tutorial
 ---------------------
 Each assertion has the form `assert_that!(SOME_VALUE, MATCHES_SOMETHING);`.

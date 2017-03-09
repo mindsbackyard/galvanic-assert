@@ -1,14 +1,15 @@
 [package]
 name = "galvanic-assert"
-version = "0.6.0"
+version = "0.7.0"
 authors = ["Christopher Bacher <mindsbackyard@gmail.com>"]
 
 description = """A comprehensive set of matcher-based assertions and expectations for easier testing.
 
 Support for checking properties of numbers, objects, enum variants, collections, panics, and more.
-It is easy to write your own assertions.
-Part of the galvanic test framework. (in development)
-Can also be used with another test framework of your choice."""
+It is also easy to write your own assertions.
+This crate will be part of the galvanic test framework (in development).
+You can also use the assertions in another test framework of your choice.
+Works on: stable, beta, and nightly"""
 
 homepage = "https://github.com/mindsbackyard/galvanic-assert"
 repository = "https://github.com/mindsbackyard/galvanic-assert"
