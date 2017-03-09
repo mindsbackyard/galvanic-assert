@@ -26,10 +26,6 @@ macro_rules! all_of {
     };
 }
 
-pub fn box_all<'a,T:'a>(combinator: Any<'a,T>) -> Box<Matcher<&'a T> + 'a> {
-    Box::new(move |actual: &'a T| combinator.check(actual))
-}
-
 /// A `Matcher` struct which joins multiple `Matcher`s conjunctively.
 ///
 /// Use `of()` to create a new `Matcher` and `and()` to add further `Matcher`s.
@@ -79,10 +75,6 @@ macro_rules! any_of {
     ( $matcher: expr, $($matchers: expr),* ) => {
         Box::new(Any::of($matcher)$(.or($matchers))*)
     };
-}
-
-pub fn box_any<'a,T:'a>(combinator: Any<'a,T>) -> Box<Matcher<&'a T> + 'a> {
-    Box::new(move |actual: &'a T| combinator.check(actual))
 }
 
 /// A `Matcher` struct which joins multiple `Matcher`s disjunctively.
