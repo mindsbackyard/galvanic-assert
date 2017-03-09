@@ -25,10 +25,6 @@
 //!  * be used with your favourite test framework
 //!
 //! The crate will be part of **galvanic**---a complete test framework for **Rust**.
-//!
-//! **galvanic-assert** currently requires *nightly* until *impl trait* returns have been stabilized.
-
-#![feature(discriminant_value)]
 
 use std::fmt::{Debug, Display, Formatter, Result as FormatResult};
 
