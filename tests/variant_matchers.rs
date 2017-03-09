@@ -17,8 +17,8 @@
 extern crate galvanic_assert;
 
 use galvanic_assert::*;
-use galvanic_assert::matchers::variant::*;
 
+#[allow(dead_code)]
 #[derive(Debug)]
 enum MyEnum {
     Var1,
@@ -37,28 +37,6 @@ mod is_variant {
     fn should_fail() {
         assert_that!(
             assert_that!(MyEnum::Var1, is_variant!(MyEnum::Var2)),
-            panics
-        );
-    }
-}
-
-mod same_variant_as {
-    use super::*;
-
-    #[test]
-    fn should_succeed() {
-        let x = MyEnum::Var1;
-        let expected = MyEnum::Var1;
-
-        assert_that!(x, same_variant_as(expected));
-    }
-
-    #[test]
-    fn should_fail() {
-        let x = MyEnum::Var1;
-        let expected = MyEnum::Var2{ x: 12 };
-        assert_that!(
-            assert_that!(x, same_variant_as(expected)),
             panics
         );
     }

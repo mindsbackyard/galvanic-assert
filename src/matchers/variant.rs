@@ -15,11 +15,6 @@
 
 //! The variant module contains matchers for asserting properties of enums.
 
-use std::fmt::Debug;
-use super::super::*;
-
-use std::mem;
-
 /// Matches if the asserted value's variant matches the expected variant.
 ///
 /// # Examples
@@ -37,6 +32,7 @@ use std::mem;
 macro_rules! is_variant {
     ( $variant: path ) => {
         |actual| {
+            use galvanic_assert::MatchResultBuilder;
             let builder = MatchResultBuilder::for_("is_variant");
             match actual {
                 $variant {..} => builder.matched(),
@@ -46,17 +42,4 @@ macro_rules! is_variant {
             }
         }
     }
-}
-
-/// Matches if the asserted value's enum variant matches the expected value's variant.
-pub fn same_variant_as<'a,  T>(expected: T) -> Box<Matcher<T> + 'a>
-where T: Debug + 'a {
-    Box::new(move |actual: T| {
-        let builder = MatchResultBuilder::for_("same_variant_as");
-        if mem::discriminant(&actual) == mem::discriminant(&expected) {
-            builder.matched()
-        } else {
-            builder.failed_comparison(&actual, &expected)
-        }
-    })
 }
