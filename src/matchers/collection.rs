@@ -26,12 +26,13 @@ pub struct ContainsInAnyOrder<T> {
 }
 
 /// Matches if the asserted collection contains *all and only* of the expected elements in any order.
-pub fn contains_in_any_order<T,I>(expected_elements: I) -> ContainsInAnyOrder<T>
+pub fn contains_in_any_order<'a,T:'a,I:'a>(expected_elements: I) -> Box<Matcher<I> + 'a>
 where T: PartialEq + Debug,
-      I: IntoIterator<Item=T> {
-    ContainsInAnyOrder {
+      I: IntoIterator<Item=T>,
+      ContainsInAnyOrder<T>: Matcher<I> {
+    Box::new(ContainsInAnyOrder {
         expected_elements: expected_elements.into_iter().collect()
-    }
+    })
 }
 
 impl<'a, T, I> Matcher<I> for ContainsInAnyOrder<T>
@@ -68,12 +69,13 @@ pub struct ContainsInOrder<T> {
 }
 
 /// Matches if the asserted collection contains *all and only* of the expected elements in the given order.
-pub fn contains_in_order<T,I>(expected_elements: I) -> ContainsInOrder<T>
+pub fn contains_in_order<'a,T:'a,I:'a>(expected_elements: I) -> Box<Matcher<I> + 'a>
 where T: PartialEq + Debug,
-      I: IntoIterator<Item=T> {
-    ContainsInOrder {
+      I: IntoIterator<Item=T>,
+      ContainsInOrder<T>: Matcher<I> {
+    Box::new(ContainsInOrder {
         expected_elements: expected_elements.into_iter().collect()
-    }
+    })
 }
 
 impl<'a, T, I> Matcher<I> for ContainsInOrder<T>
@@ -115,12 +117,13 @@ pub struct ContainsSubset<T> {
 }
 
 /// Matches if the asserted collection contains *all* (possibly more) of the expected elements.
-pub fn contains_subset<T,I>(expected_elements: I) -> ContainsSubset<T>
+pub fn contains_subset<'a,T:'a,I:'a>(expected_elements: I) -> Box<Matcher<I> + 'a>
 where T: PartialEq + Debug,
-      I: IntoIterator<Item=T> {
-    ContainsSubset {
+      I: IntoIterator<Item=T>,
+      ContainsSubset<T>: Matcher<I> {
+    Box::new(ContainsSubset {
         expected_elements: expected_elements.into_iter().collect()
-    }
+    })
 }
 
 impl<'a, T, I> Matcher<I> for ContainsSubset<T>
@@ -153,12 +156,12 @@ pub struct ContainedIn<T> {
 }
 
 /// Matches if the asserted (single) value is contained in the expected elements.
-pub fn contained_in<T,I>(expected_to_contain: I) -> ContainedIn<T>
+pub fn contained_in<'a,T:'a,I>(expected_to_contain: I) -> Box<Matcher<T> + 'a>
 where T: PartialEq + Debug,
       I: IntoIterator<Item=T> {
-    ContainedIn {
+    Box::new(ContainedIn {
         expected_to_contain: expected_to_contain.into_iter().collect()
-    }
+    })
 }
 
 impl<'a, T> Matcher<T> for ContainedIn<T>
@@ -387,41 +390,140 @@ where T: Debug,
     })
 }
 
-/// Matches if the indexable collection containts the given key/value pair.
+/// Matches if the map-like collection contains the given key/value pair.
 ///
-/// The `Matcher` tests if `map[key] == value` succeeds.
-/// If the key is not present in the collection then the index operation is allowed to panic,
-/// but has to be unwind-safe.
-pub struct HasEntry<'a,K:'a,V> {
-    key: &'a K,
+/// The `Matcher` tests for this by converting the map-like data structure
+/// into a key/value pair iterator.
+///
+/// The alternative would be to use the Index trait though experiments showed
+/// that this would not be composable with `all_of!` or `any_of!`.
+pub struct HasEntry<K,V> {
+    key: K,
     value: V
 }
 
-/// Matches if the indexable (map-like) collection containts the given key/value pair.
+/// Matches if the map-like collection contains the given key/value pair.
 ///
-/// The `Matcher` tests if `map[key] == value` succeeds.
-/// If the key is not present in the collection then the index operation is allowed to panic,
-/// but has to be unwind-safe.
-pub fn has_entry<K,V>(key: &K, value: V) -> HasEntry<K,V> {
-    HasEntry {
+/// The `Matcher` tests for this by converting the map-like data structure
+/// into a key/value pair iterator.
+///
+/// The alternative would be to use the Index trait though experiments showed
+/// that this would not be composable with `all_of!` or `any_of!`.
+pub fn has_entry<'a,K:'a,V:'a,M:'a>(key: K, value: V) -> Box<Matcher<M> + 'a>
+where M: IntoIterator<Item=(&'a K,&'a V)>,
+      HasEntry<K,V>: Matcher<M> {
+    Box::new(HasEntry {
         key: key,
         value: value
-    }
+    })
 }
 
-impl<'a,K,V,M> Matcher<M> for HasEntry<'a,K,V>
-where V: PartialEq + Debug + std::panic::RefUnwindSafe,
-      K: Debug + 'a + std::panic::RefUnwindSafe,
-      M: std::ops::Index<&'a K, Output=V> + std::panic::RefUnwindSafe {
+impl<'a,K,V,M> Matcher<M> for HasEntry<K,V>
+where V: PartialEq + Debug + 'a,
+      K: PartialEq + Debug + 'a,
+      M: IntoIterator<Item=(&'a K,&'a V)> {
 
     fn check(&self, map: M) -> MatchResult {
         let builder = MatchResultBuilder::for_("has_entry");
-        let maybe_value = std::panic::catch_unwind(|| &map[self.key]);
-
-        match maybe_value {
-            Err(..) => builder.failed_because(&format!("accessing key '{:?}' failed", self.key)),
-            Ok(actual) if &self.value != actual => builder.failed_comparison(&(self.key, actual), &(self.key, &self.value)),
-            Ok(..) => builder.matched()
+        let mut same_keys = Vec::new();
+        let mut same_values = Vec::new();
+        for (key, value) in map.into_iter() {
+            if key == &self.key && value == &self.value {
+                return builder.matched()
+            }
+            if key == &self.key {
+                same_keys.push(value);
+            }
+            if value == &self.value {
+                same_values.push(key);
+            }
         }
+
+        builder.failed_because(&format!(
+            "Entry ({:?}, {:?}) not found.\n\tEntries with same key: {:?}\n\tEntries with same value: {:?}",
+            &self.key, &self.value,
+            same_keys, same_values
+        ))
+    }
+}
+
+/// Matches if the map-like collection contains the given key.
+///
+/// The `Matcher` tests for this by converting the map-like data structure
+/// into a key/value pair iterator.
+///
+/// The alternative would be to use the Index trait though experiments showed
+/// that this would not be composable with `all_of!` or `any_of!`.
+pub struct HasKey<K> {
+    key: K
+}
+
+/// Matches if the map-like collection contains the given key.
+///
+/// The `Matcher` tests for this by converting the map-like data structure
+/// into a key/value pair iterator.
+///
+/// The alternative would be to use the Index trait though experiments showed
+/// that this would not be composable with `all_of!` or `any_of!`.
+pub fn has_key<'a,K:'a,V:'a,M:'a>(key: K) -> Box<Matcher<M> + 'a>
+where M: IntoIterator<Item=(&'a K,&'a V)>,
+      HasKey<K>: Matcher<M> {
+    Box::new(HasKey {
+        key: key
+    })
+}
+
+impl<'a,K,V,M> Matcher<M> for HasKey<K>
+where V: PartialEq + Debug + 'a,
+      K: PartialEq + Debug + 'a,
+      M: IntoIterator<Item=(&'a K,&'a V)> {
+
+    fn check(&self, map: M) -> MatchResult {
+        let builder = MatchResultBuilder::for_("has_key");
+        for (key, _) in map.into_iter() {
+            if key == &self.key {
+                return builder.matched();
+            }
+        }
+
+        builder.failed_because(&format!("No entrywith key {:?} found", &self.key))
+    }
+}
+
+
+/// Matches if the map-like collection contains the given value.
+///
+/// The `Matcher` tests for this by converting the map-like data structure
+/// into a key/value pair iterator.
+pub struct HasValue<V> {
+    value: V
+}
+
+/// Matches if the map-like collection contains the given value.
+///
+/// The `Matcher` tests for this by converting the map-like data structure
+/// into a key/value pair iterator.
+pub fn has_value<'a,K:'a,V:'a,M:'a>(key: K) -> Box<Matcher<M> + 'a>
+where M: IntoIterator<Item=(&'a K,&'a V)>,
+      HasKey<K>: Matcher<M> {
+    Box::new(HasKey {
+        key: key
+    })
+}
+
+impl<'a,K,V,M> Matcher<M> for HasValue<V>
+where V: PartialEq + Debug + 'a,
+      K: PartialEq + Debug + 'a,
+      M: IntoIterator<Item=(&'a K,&'a V)> {
+
+    fn check(&self, map: M) -> MatchResult {
+        let builder = MatchResultBuilder::for_("has_value");
+        for (_, value) in map.into_iter() {
+            if value == &self.value {
+                return builder.matched();
+            }
+        }
+
+        builder.failed_because(&format!("No entry with value {:?} found", &self.value))
     }
 }

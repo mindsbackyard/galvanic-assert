@@ -20,7 +20,7 @@ use galvanic_assert::*;
 use galvanic_assert::matchers::collection::*;
 
 mod contains_in_any_order {
-    use super::{std, Matcher, MatchResult, contains_in_any_order};
+    use super::{std, MatchResult, contains_in_any_order};
 
     #[test]
     fn should_match() {
@@ -50,7 +50,7 @@ mod contains_in_any_order {
 }
 
 mod contains_in_order {
-    use super::{std, Matcher, MatchResult, contains_in_order};
+    use super::{std, MatchResult, contains_in_order};
 
     #[test]
     fn should_match() {
@@ -88,7 +88,7 @@ mod contains_in_order {
 }
 
 mod contains_subset {
-    use super::{std, Matcher, MatchResult, contains_subset};
+    use super::{std, MatchResult, contains_subset};
 
     #[test]
     fn should_match() {
@@ -115,7 +115,7 @@ mod contains_subset {
 }
 
 mod contained_in {
-    use super::{std, Matcher, MatchResult, contained_in};
+    use super::{std, MatchResult, contained_in};
 
     #[test]
     fn should_match() {
@@ -506,69 +506,119 @@ mod some_elements_satisfy {
 }
 
 mod has_entry {
-    use super::{std, Matcher, MatchResult, has_entry};
+    use super::{std, MatchResult, has_entry};
 
     mod ordered_map {
-        use super::{std, Matcher, MatchResult, has_entry};
+        use super::{std, MatchResult, has_entry};
 
         #[test]
         fn should_match() {
             let mut map = std::collections::BTreeMap::<i32,i32>::new();
             map.insert(1, 2);
 
-            assert_that!(map, has_entry(&1, 2));
+            assert_that!(&map, has_entry(1, 2));
         }
 
         #[test]
-        fn should_match_due_to_missing_key() {
+        fn should_fail_due_to_missing_key() {
             let map = std::collections::BTreeMap::<i32,i32>::new();
 
             assert_that!(
-                assert_that!(map, has_entry(&1, 2)),
+                assert_that!(&map, has_entry(1, 2)),
                 panics
             );
         }
 
         #[test]
-        fn should_match_due_to_wrong_entry() {
+        fn should_fail_due_to_wrong_entry() {
             let mut map = std::collections::BTreeMap::<i32,i32>::new();
             map.insert(1, 1);
 
             assert_that!(
-                assert_that!(map, has_entry(&1, 2)),
+                assert_that!(&map, has_entry(1, 2)),
                 panics
             );
         }
     }
 
     mod hash_map {
-        use super::{std, Matcher, MatchResult, has_entry};
+        use super::{std, MatchResult, has_entry};
 
         #[test]
         fn should_match() {
             let mut map = std::collections::HashMap::<i32,i32>::new();
             map.insert(1, 2);
 
-            assert_that!(map, has_entry(&1, 2));
+            assert_that!(&map, has_entry(1, 2));
         }
 
         #[test]
-        fn should_match_due_to_missing_key() {
+        fn should_fail_due_to_missing_key() {
             let map = std::collections::HashMap::<i32,i32>::new();
 
             assert_that!(
-                assert_that!(map, has_entry(&1, 2)),
+                assert_that!(&map, has_entry(1, 2)),
                 panics
             );
         }
 
         #[test]
-        fn should_match_due_to_wrong_entry() {
+        fn should_fail_due_to_wrong_entry() {
             let mut map = std::collections::HashMap::<i32,i32>::new();
             map.insert(1, 1);
 
             assert_that!(
-                assert_that!(map, has_entry(&1, 2)),
+                assert_that!(&map, has_entry(1, 2)),
+                panics
+            );
+        }
+    }
+}
+
+mod has_key {
+    use super::{std, MatchResult, has_key};
+
+    mod ordered_map {
+        use super::{std, MatchResult, has_key};
+
+        #[test]
+        fn should_match() {
+            let mut map = std::collections::BTreeMap::<i32,i32>::new();
+            map.insert(1, 2);
+
+            assert_that!(&map, has_key(1));
+        }
+
+        #[test]
+        fn should_fail_due_to_missing_key() {
+            let mut map = std::collections::BTreeMap::<i32,i32>::new();
+            map.insert(1, 2);
+
+            assert_that!(
+                assert_that!(&map, has_key(2)),
+                panics
+            );
+        }
+    }
+
+    mod hash_map {
+        use super::{std, MatchResult, has_key};
+
+        #[test]
+        fn should_match() {
+            let mut map = std::collections::HashMap::<i32,i32>::new();
+            map.insert(1, 2);
+
+            assert_that!(&map, has_key(1));
+        }
+
+        #[test]
+        fn should_fail_due_to_missing_key() {
+            let mut map = std::collections::HashMap::<i32,i32>::new();
+            map.insert(1, 2);
+
+            assert_that!(
+                assert_that!(&map, has_key(2)),
                 panics
             );
         }
