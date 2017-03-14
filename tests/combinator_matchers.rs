@@ -110,3 +110,22 @@ mod combining_combinators {
         assert_that!(&x, not(any_of!(assertion_always_fails(), assertion_always_fails())));
     }
 }
+
+mod combining_variant_matchers {
+    use galvanic_assert::*;
+    use galvanic_assert::matchers::*;
+
+    enum Variants {
+        First,
+        Second,
+        Third
+    }
+
+    #[test]
+    fn should_match() {
+        let x = Variants::Second;
+        assert_that!(&x, any_of!(is_variant!(Variants::First),
+                               is_variant!(Variants::Second)
+        ));
+    }
+}
