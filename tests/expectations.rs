@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #[macro_use]
 extern crate galvanic_assert;
 
@@ -116,14 +116,14 @@ mod get_expectation_for {
         #[test]
         fn should_get_an_expectation_asserting_a_matcher_to_succeed() {
             #[allow(unused_variables)]
-            let e = get_expectation_for!(1, assertion_always_succeeds());
+            let e = get_expectation_for!(&1, assertion_always_succeeds());
         }
 
         #[test]
         #[should_panic]
         fn should_get_an_expectation_asserting_a_matcher_to_fail() {
             #[allow(unused_variables)]
-            let e = get_expectation_for!(1, assertion_always_fails());
+            let e = get_expectation_for!(&1, assertion_always_fails());
         }
     }
 }
@@ -202,13 +202,13 @@ mod expect_that {
 
         #[test]
         fn should_expect_a_matcher_to_succeed() {
-            expect_that!(1, assertion_always_succeeds());
+            expect_that!(&1, assertion_always_succeeds());
         }
 
         #[test]
         #[should_panic]
         fn should_expect_a_matcher_to_fail() {
-            expect_that!(1, assertion_always_fails());
+            expect_that!(&1, assertion_always_fails());
         }
     }
 }

@@ -26,26 +26,26 @@ pub struct ContainsInAnyOrder<T> {
 }
 
 /// Matches if the asserted collection contains *all and only* of the expected elements in any order.
-pub fn contains_in_any_order<'a,T:'a,I:'a>(expected_elements: I) -> Box<Matcher<I> + 'a>
+pub fn contains_in_any_order<'a,T:'a,I:'a>(expected_elements: I) -> Box<Matcher<'a,I> + 'a>
 where T: PartialEq + Debug,
       I: IntoIterator<Item=T>,
-      ContainsInAnyOrder<T>: Matcher<I> {
+      ContainsInAnyOrder<T>: Matcher<'a,I> {
     Box::new(ContainsInAnyOrder {
         expected_elements: expected_elements.into_iter().collect()
     })
 }
 
-impl<'a, T, I> Matcher<I> for ContainsInAnyOrder<T>
+impl<'a,T,I> Matcher<'a,I> for ContainsInAnyOrder<T>
 where T: PartialEq + Debug + 'a,
-      I: IntoIterator<Item=T> + Debug {
-    fn check(&self, actual: I) -> MatchResult {
+      &'a I: IntoIterator<Item=&'a T> + Debug + 'a {
+    fn check(&self, actual: &'a I) -> MatchResult {
         let repr = format!("{:?}", actual);
         let builder = MatchResultBuilder::for_("contains_in_any_order");
         let mut expected_elements = Vec::from_iter(self.expected_elements.iter());
 
-        for element in actual.into_iter() {
+        for ref element in actual.into_iter() {
             let maybe_pos = expected_elements.iter()
-                                             .position(|candidate| element == **candidate);
+                                             .position(|candidate| element == candidate);;
             if let Some(idx) = maybe_pos {
                 expected_elements.remove(idx);
             } else {
@@ -69,19 +69,19 @@ pub struct ContainsInOrder<T> {
 }
 
 /// Matches if the asserted collection contains *all and only* of the expected elements in the given order.
-pub fn contains_in_order<'a,T:'a,I:'a>(expected_elements: I) -> Box<Matcher<I> + 'a>
+pub fn contains_in_order<'a,T:'a,I:'a>(expected_elements: I) -> Box<Matcher<'a,I> + 'a>
 where T: PartialEq + Debug,
       I: IntoIterator<Item=T>,
-      ContainsInOrder<T>: Matcher<I> {
+      ContainsInOrder<T>: Matcher<'a,I> {
     Box::new(ContainsInOrder {
         expected_elements: expected_elements.into_iter().collect()
     })
 }
 
-impl<'a, T, I> Matcher<I> for ContainsInOrder<T>
+impl<'a, T, I:'a> Matcher<'a,I> for ContainsInOrder<T>
 where T: PartialEq + Debug + 'a,
-      I: IntoIterator<Item=T> + Debug {
-    fn check(&self, actual: I) -> MatchResult {
+      &'a I: IntoIterator<Item=&'a T> + Debug + 'a {
+    fn check(&self, actual: &'a I) -> MatchResult {
         let builder = MatchResultBuilder::for_("contains_in_order");
         let actual_list: Vec<_> = actual.into_iter().collect();
 
@@ -101,7 +101,7 @@ where T: PartialEq + Debug + 'a,
 
         let nonmatching: Vec<_> = actual_list.into_iter()
                                              .zip(self.expected_elements.iter())
-                                             .filter(|&(ref act, exp)| *act != *exp)
+                                             .filter(|&(act, exp)| act != exp)
                                              .collect();
         if !nonmatching.is_empty() {
             builder.failed_because(
@@ -117,26 +117,26 @@ pub struct ContainsSubset<T> {
 }
 
 /// Matches if the asserted collection contains *all* (possibly more) of the expected elements.
-pub fn contains_subset<'a,T:'a,I:'a>(expected_elements: I) -> Box<Matcher<I> + 'a>
+pub fn contains_subset<'a,T:'a,I:'a>(expected_elements: I) -> Box<Matcher<'a,I> + 'a>
 where T: PartialEq + Debug,
       I: IntoIterator<Item=T>,
-      ContainsSubset<T>: Matcher<I> {
+      ContainsSubset<T>: Matcher<'a,I> {
     Box::new(ContainsSubset {
         expected_elements: expected_elements.into_iter().collect()
     })
 }
 
-impl<'a, T, I> Matcher<I> for ContainsSubset<T>
+impl<'a, T, I:'a> Matcher<'a,I> for ContainsSubset<T>
 where T: PartialEq + Debug + 'a,
-      I: IntoIterator<Item=T> + Debug {
-    fn check(&self, actual: I) -> MatchResult {
+      &'a I: IntoIterator<Item=&'a T> + Debug + 'a {
+    fn check(&self, actual: &'a I) -> MatchResult {
         let repr = format!("{:?}", actual);
         let builder = MatchResultBuilder::for_("contains_subset");
         let mut expected_elements = Vec::from_iter(self.expected_elements.iter());
 
         for element in actual.into_iter() {
             let maybe_pos = expected_elements.iter()
-                                             .position(|candidate| element == **candidate);
+                                             .position(|candidate| element == *candidate);
             if let Some(idx) = maybe_pos {
                 expected_elements.remove(idx);
             }
@@ -156,7 +156,7 @@ pub struct ContainedIn<T> {
 }
 
 /// Matches if the asserted (single) value is contained in the expected elements.
-pub fn contained_in<'a,T:'a,I>(expected_to_contain: I) -> Box<Matcher<T> + 'a>
+pub fn contained_in<'a,T:'a,I>(expected_to_contain: I) -> Box<Matcher<'a,T> + 'a>
 where T: PartialEq + Debug,
       I: IntoIterator<Item=T> {
     Box::new(ContainedIn {
@@ -164,11 +164,11 @@ where T: PartialEq + Debug,
     })
 }
 
-impl<'a, T> Matcher<T> for ContainedIn<T>
-where T: PartialEq + Debug  {
-    fn check(&self, element: T) -> MatchResult {
+impl<'a,T> Matcher<'a,T> for ContainedIn<T>
+where T: PartialEq + Debug + 'a  {
+    fn check(&self, element: &T) -> MatchResult {
         let builder = MatchResultBuilder::for_("containd_in");
-        if let None = self.expected_to_contain.iter().position(|e| *e == element) {
+        if let None = self.expected_to_contain.iter().position(|e| e == element) {
             builder.failed_because(
                 &format!("{:?} does not contain: {:?}", self.expected_to_contain, element)
             )
@@ -181,11 +181,11 @@ where T: PartialEq + Debug  {
 /// The `predicate` is applied to all consecutive pairs of elements and returns the `Ordering` of the pair.
 /// The ordering is allowed to be weakly monotone, i.e., equal elements are allowed to follow each other.
 /// An empty collection is assumed to be always sorted.
-pub fn sorted_by<T,I,P>(predicate: P, expected_ordering: std::cmp::Ordering) -> Box<Fn(I) -> MatchResult>
-where I: IntoIterator<Item=T>,
-      T: Ord + Debug,
-      P: Fn(&T,&T) -> std::cmp::Ordering + 'static {
-    Box::new(move |elements: I| {
+pub fn sorted_by<'a,T,I,P>(predicate: P, expected_ordering: std::cmp::Ordering) -> Box<Fn(&'a I) -> MatchResult>
+where &'a I: IntoIterator<Item=&'a T> + 'a,
+      T: Ord + Debug + 'a,
+      P: Fn(&'a T,&'a T) -> std::cmp::Ordering + 'static {
+    Box::new(move |elements: &'a I| {
         let builder = MatchResultBuilder::for_("sorted_by");
         let mut iter = elements.into_iter();
         let maybe_prev = iter.next();
@@ -213,11 +213,11 @@ where I: IntoIterator<Item=T>,
 /// The `predicate` is applied to all consecutive pairs of elements and returns the `Ordering` of the pair.
 /// The ordering is allowed to be weakly monotone, i.e., equal elements are allowed to follow each other.
 /// An empty collection is assumed to be always sorted.
-pub fn sorted_strictly_by<T,I,P>(predicate: P, expected_ordering: std::cmp::Ordering) -> Box<Fn(I) -> MatchResult>
-where I: IntoIterator<Item=T>,
-      T: Ord + Debug,
-      P: Fn(&T,&T) -> std::cmp::Ordering + 'static {
-    Box::new(move |elements: I| {
+pub fn sorted_strictly_by<'a,T,I,P>(predicate: P, expected_ordering: std::cmp::Ordering) -> Box<Fn(&'a I) -> MatchResult>
+where &'a I: IntoIterator<Item=&'a T> + 'a,
+      T: Ord + Debug + 'a,
+      P: Fn(&'a T,&'a T) -> std::cmp::Ordering + 'static {
+    Box::new(move |elements: &'a I| {
         let builder = MatchResultBuilder::for_("sorted_strictly_by");
         let mut iter = elements.into_iter();
         let maybe_prev = iter.next();
@@ -244,11 +244,11 @@ where I: IntoIterator<Item=T>,
 /// The first `Ordering` different to `Ordering::Equal` defines the expected order of the collection.
 /// The ordering is allowed to be weakly monotone, i.e., equal elements are allowed to follow each other.
 /// An empty collection is assumed to be always sorted.
-pub fn sorted_by_in_any_order<T,I,P>(predicate: P) -> Box<Fn(I) -> MatchResult>
-where I: IntoIterator<Item=T>,
-      T: Ord + Debug,
-      P: Fn(&T,&T) -> std::cmp::Ordering + 'static {
-    Box::new(move |elements: I| {
+pub fn sorted_by_in_any_order<'a,T,I,P>(predicate: P) -> Box<Fn(&'a I) -> MatchResult>
+where &'a I: IntoIterator<Item=&'a T> + 'a,
+      T: Ord + Debug + 'a,
+      P: Fn(&'a T,&'a T) -> std::cmp::Ordering + 'static {
+    Box::new(move |elements: &'a I| {
         let builder = MatchResultBuilder::for_("sorted_by_in_any_order");
         let mut iter = elements.into_iter();
         let mut expected_ordering: Option<std::cmp::Ordering> = None;
@@ -281,11 +281,11 @@ where I: IntoIterator<Item=T>,
 /// The first `Ordering` different to `Ordering::Equal` defines the expected order of the collection.
 /// The ordering is allowed to be weakly monotone, i.e., equal elements are allowed to follow each other.
 /// An empty collection is assumed to be always sorted.
-pub fn sorted_strictly_by_in_any_order<T,I,P>(predicate: P) -> Box<Fn(I) -> MatchResult>
-where I: IntoIterator<Item=T>,
-      T: Ord + Debug,
-      P: Fn(&T,&T) -> std::cmp::Ordering + 'static {
-    Box::new(move |elements: I| {
+pub fn sorted_strictly_by_in_any_order<'a,T,I,P>(predicate: P) -> Box<Fn(&'a I) -> MatchResult>
+where &'a I: IntoIterator<Item=&'a T> + 'a,
+      T: Ord + Debug + 'a,
+      P: Fn(&'a T,&'a T) -> std::cmp::Ordering + 'static {
+    Box::new(move |elements: &'a I| {
         let builder = MatchResultBuilder::for_("sorted_strictly_by_in_any_order");
         let mut iter = elements.into_iter();
         let mut expected_ordering: Option<std::cmp::Ordering> = None;
@@ -320,47 +320,47 @@ where I: IntoIterator<Item=T>,
 /// Matches if the asserted collection is sorted weakly ascending.
 ///
 /// An empty collection is assumed to be always sorted.
-pub fn sorted_ascending<T,I>() -> Box<Fn(I) -> MatchResult>
-where I: IntoIterator<Item=T>,
-      T: Ord + Debug {
+pub fn sorted_ascending<'a,T,I>() -> Box<Fn(&'a I) -> MatchResult>
+where &'a I: IntoIterator<Item=&'a T> + 'a,
+      T: Ord + Debug + 'a {
     sorted_by(|a: &T, b: &T| a.cmp(b), std::cmp::Ordering::Less)
 }
 
 /// Matches if the asserted collection is sorted strictly ascending.
 ///
 /// An empty collection is assumed to be always sorted.
-pub fn sorted_strictly_ascending<T,I>() -> Box<Fn(I) -> MatchResult>
-where I: IntoIterator<Item=T>,
-      T: Ord + Debug {
+pub fn sorted_strictly_ascending<'a,T,I>() -> Box<Fn(&'a I) -> MatchResult>
+where &'a I: IntoIterator<Item=&'a T> + 'a,
+      T: Ord + Debug + 'a {
     sorted_strictly_by(|a: &T, b: &T| a.cmp(b), std::cmp::Ordering::Less)
 }
 
 /// Matches if the asserted collection is sorted weakly descending.
 ///
 /// An empty collection is assumed to be always sorted.
-pub fn sorted_descending<T,I>() -> Box<Fn(I) -> MatchResult>
-where I: IntoIterator<Item=T>,
-      T: Ord + Debug {
+pub fn sorted_descending<'a,T,I>() -> Box<Fn(&'a I) -> MatchResult>
+where &'a I: IntoIterator<Item=&'a T> + 'a,
+      T: Ord + Debug + 'a {
     sorted_by(|a: &T, b: &T| a.cmp(b), std::cmp::Ordering::Greater)
 }
 
 /// Matches if the asserted collection is sorted strictly descending.
 ///
 /// An empty collection is assumed to be always sorted.
-pub fn sorted_strictly_descending<T,I>() -> Box<Fn(I) -> MatchResult>
-where I: IntoIterator<Item=T>,
-      T: Ord + Debug {
+pub fn sorted_strictly_descending<'a,T,I>() -> Box<Fn(&'a I) -> MatchResult>
+where &'a I: IntoIterator<Item=&'a T> + 'a,
+      T: Ord + Debug + 'a {
     sorted_strictly_by(|a: &T, b: &T| a.cmp(b), std::cmp::Ordering::Greater)
 }
 
 /// Matches if all elements in the asserted collection satisfy the given `predicate`.
 ///
 /// An empty collection always satisfies this matcher as all (=no) element satisfies the predicate.
-pub fn all_elements_satisfy<T,I,P>(predicate: P) -> Box<Fn(I) -> MatchResult>
-where T: Debug,
-      I: IntoIterator<Item=T>,
-      P: Fn(&T) -> bool + 'static {
-    Box::new(move |elements: I| {
+pub fn all_elements_satisfy<'a,T,I,P>(predicate: P) -> Box<Fn(&'a I) -> MatchResult>
+where T: Debug + 'a,
+      &'a I: IntoIterator<Item=&'a T> + 'a,
+      P: Fn(&'a T) -> bool + 'static {
+    Box::new(move |elements: &'a I| {
         let builder = MatchResultBuilder::for_("all_elements_satisfy");
         let nonsatisfying_elements: Vec<_> = elements.into_iter().filter(|e| !predicate(e)).collect();
         if !nonsatisfying_elements.is_empty() {
@@ -376,11 +376,11 @@ where T: Debug,
 /// Matches if at least one element in the asserted collection satisfy the given `predicate`.
 ///
 /// An empty collection never satisfies this matcher as no element satisfies the predicate.
-pub fn some_elements_satisfy<T,I,P>(predicate: P) -> Box<Fn(I) -> MatchResult>
-where T: Debug,
-      I: IntoIterator<Item=T>,
+pub fn some_elements_satisfy<'a,T,I,P>(predicate: P) -> Box<Fn(&'a I) -> MatchResult>
+where T: Debug + 'a,
+      &'a I: IntoIterator<Item=&'a T> + 'a,
       P: Fn(&T) -> bool + 'static {
-    Box::new(move |elements: I| {
+    Box::new(move |elements: &'a I| {
         let builder = MatchResultBuilder::for_("some_elements_satisfy");
         if !elements.into_iter().any(|ref e| predicate(e)) {
             builder.failed_because("no elements satisfy the predicate")
@@ -409,21 +409,21 @@ pub struct HasEntry<K,V> {
 ///
 /// The alternative would be to use the Index trait though experiments showed
 /// that this would not be composable with `all_of!` or `any_of!`.
-pub fn has_entry<'a,K:'a,V:'a,M:'a>(key: K, value: V) -> Box<Matcher<M> + 'a>
-where M: IntoIterator<Item=(&'a K,&'a V)>,
-      HasEntry<K,V>: Matcher<M> {
+pub fn has_entry<'a,K:'a,V:'a,M:'a>(key: K, value: V) -> Box<Matcher<'a,M> + 'a>
+where &'a M: IntoIterator<Item=(&'a K,&'a V)> + 'a,
+      HasEntry<K,V>: Matcher<'a,M> {
     Box::new(HasEntry {
         key: key,
         value: value
     })
 }
 
-impl<'a,K,V,M> Matcher<M> for HasEntry<K,V>
+impl<'a,K,V,M> Matcher<'a,M> for HasEntry<K,V>
 where V: PartialEq + Debug + 'a,
       K: PartialEq + Debug + 'a,
-      M: IntoIterator<Item=(&'a K,&'a V)> {
+      &'a M: IntoIterator<Item=(&'a K,&'a V)> + 'a {
 
-    fn check(&self, map: M) -> MatchResult {
+    fn check(&self, map: &'a M) -> MatchResult {
         let builder = MatchResultBuilder::for_("has_entry");
         let mut same_keys = Vec::new();
         let mut same_values = Vec::new();
@@ -465,20 +465,20 @@ pub struct HasKey<K> {
 ///
 /// The alternative would be to use the Index trait though experiments showed
 /// that this would not be composable with `all_of!` or `any_of!`.
-pub fn has_key<'a,K:'a,V:'a,M:'a>(key: K) -> Box<Matcher<M> + 'a>
-where M: IntoIterator<Item=(&'a K,&'a V)>,
-      HasKey<K>: Matcher<M> {
+pub fn has_key<'a,K:'a,V:'a,M:'a>(key: K) -> Box<Matcher<'a,M> + 'a>
+where &'a M: IntoIterator<Item=(&'a K,&'a V)> + 'a,
+      HasKey<K>: Matcher<'a,M> {
     Box::new(HasKey {
         key: key
     })
 }
 
-impl<'a,K,V,M> Matcher<M> for HasKey<K>
+impl<'a,K,V,M> Matcher<'a,M> for HasKey<K>
 where V: PartialEq + Debug + 'a,
       K: PartialEq + Debug + 'a,
-      M: IntoIterator<Item=(&'a K,&'a V)> {
+      &'a M: IntoIterator<Item=(&'a K,&'a V)> + 'a {
 
-    fn check(&self, map: M) -> MatchResult {
+    fn check(&self, map: &'a M) -> MatchResult {
         let builder = MatchResultBuilder::for_("has_key");
         for (key, _) in map.into_iter() {
             if key == &self.key {
@@ -503,20 +503,20 @@ pub struct HasValue<V> {
 ///
 /// The `Matcher` tests for this by converting the map-like data structure
 /// into a key/value pair iterator.
-pub fn has_value<'a,K:'a,V:'a,M:'a>(key: K) -> Box<Matcher<M> + 'a>
-where M: IntoIterator<Item=(&'a K,&'a V)>,
-      HasKey<K>: Matcher<M> {
+pub fn has_value<'a,K:'a,V:'a,M:'a>(key: K) -> Box<Matcher<'a,M> + 'a>
+where &'a M: IntoIterator<Item=(&'a K,&'a V)> + 'a,
+      HasKey<K>: Matcher<'a,M> {
     Box::new(HasKey {
         key: key
     })
 }
 
-impl<'a,K,V,M> Matcher<M> for HasValue<V>
+impl<'a,K,V,M> Matcher<'a,M> for HasValue<V>
 where V: PartialEq + Debug + 'a,
       K: PartialEq + Debug + 'a,
-      M: IntoIterator<Item=(&'a K,&'a V)> {
+      &'a M: IntoIterator<Item=(&'a K,&'a V)> + 'a {
 
-    fn check(&self, map: M) -> MatchResult {
+    fn check(&self, map: &'a M) -> MatchResult {
         let builder = MatchResultBuilder::for_("has_value");
         for (_, value) in map.into_iter() {
             if value == &self.value {

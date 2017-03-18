@@ -115,6 +115,7 @@ mod combining_variant_matchers {
     use galvanic_assert::*;
     use galvanic_assert::matchers::*;
 
+    #[allow(dead_code)]
     enum Variants {
         First,
         Second,
@@ -125,7 +126,7 @@ mod combining_variant_matchers {
     fn should_match() {
         let x = Variants::Second;
         assert_that!(&x, any_of!(is_variant!(Variants::First),
-                               is_variant!(Variants::Second)
+                                 is_variant!(Variants::Second)
         ));
     }
 }

@@ -30,13 +30,13 @@ macro_rules! all_of {
 ///
 /// Use `of()` to create a new `Matcher` and `and()` to add further `Matcher`s.
 pub struct All<'a, T:'a> {
-    pub matcher: Box<Matcher<&'a T> + 'a>,
+    pub matcher: Box<Matcher<'a,T> + 'a>,
     pub next: Option<Box<All<'a,T>>>
 }
 
 impl<'a,T:'a> All<'a, T> {
     /// Creates a new conjunctive `Matcher` starting with the given `Matcher`.
-    pub fn of(matcher: Box<Matcher<&'a T> + 'a>) -> All<'a,T> {
+    pub fn of(matcher: Box<Matcher<'a,T> + 'a>) -> All<'a,T> {
         All {
             matcher: matcher,
             next: None
@@ -44,7 +44,7 @@ impl<'a,T:'a> All<'a, T> {
     }
 
     /// Adds the given `Matcher` conjunctively.
-    pub fn and(self, matcher: Box<Matcher<&'a T> + 'a>) -> All<'a,T> {
+    pub fn and(self, matcher: Box<Matcher<'a,T> + 'a>) -> All<'a,T> {
         All {
             matcher: matcher,
             next: Some(Box::new(self))
@@ -52,7 +52,7 @@ impl<'a,T:'a> All<'a, T> {
     }
 }
 
-impl<'a,T:'a> Matcher<&'a T> for All<'a,T> {
+impl<'a,T:'a> Matcher<'a,T> for All<'a,T> {
     fn check(&self, actual: &'a T) -> MatchResult {
         match self.matcher.check(actual) {
             x@MatchResult::Matched {..} => {
@@ -81,13 +81,13 @@ macro_rules! any_of {
 ///
 /// Use `of()` to create a new `Matcher` and `or()` to add further `Matcher`s.
 pub struct Any<'a, T:'a> {
-    pub matcher: Box<Matcher<&'a T> + 'a>,
+    pub matcher: Box<Matcher<'a,T> + 'a>,
     pub next: Option<Box<Any<'a,T>>>
 }
 
 impl<'a,T:'a> Any<'a, T> {
     /// Creates a new conjunctive `Matcher` starting with the given `Matcher`.
-    pub fn of(matcher: Box<Matcher<&'a T> + 'a>) -> Any<'a,T> {
+    pub fn of(matcher: Box<Matcher<'a,T> + 'a>) -> Any<'a,T> {
         Any {
             matcher: matcher,
             next: None
@@ -95,7 +95,7 @@ impl<'a,T:'a> Any<'a, T> {
     }
 
     /// Adds the given `Matcher` disjunctively.
-    pub fn or(self, matcher: Box<Matcher<&'a T> + 'a>) -> Any<'a,T> {
+    pub fn or(self, matcher: Box<Matcher<'a,T> + 'a>) -> Any<'a,T> {
         Any {
             matcher: matcher,
             next: Some(Box::new(self))
@@ -103,7 +103,7 @@ impl<'a,T:'a> Any<'a, T> {
     }
 }
 
-impl<'a,T:'a> Matcher<&'a T> for Any<'a,T> {
+impl<'a,T:'a> Matcher<'a,T> for Any<'a,T> {
     fn check(&self, actual: &'a T) -> MatchResult {
         match self.matcher.check(actual) {
             MatchResult::Matched {..} => MatchResult::Matched { name: "any_of".to_owned() },

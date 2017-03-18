@@ -30,13 +30,13 @@ mod is_variant {
 
     #[test]
     fn should_succeed() {
-        assert_that!(MyEnum::Var1, is_variant!(MyEnum::Var1));
+        assert_that!(&MyEnum::Var1, is_variant!(MyEnum::Var1));
     }
 
     #[test]
     fn should_fail() {
         assert_that!(
-            assert_that!(MyEnum::Var1, is_variant!(MyEnum::Var2)),
+            assert_that!(&MyEnum::Var1, is_variant!(MyEnum::Var2)),
             panics
         );
     }

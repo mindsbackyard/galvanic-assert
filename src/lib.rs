@@ -40,11 +40,11 @@ use std::fmt::{Debug, Display, Formatter, Result as FormatResult};
 ///     assert_that!(EXPRESSION, otherwise "some error message");
 ///     ```
 ///  2. Assert that some expression satifies the properties of some `Matcher`.
-///     The `Matcher` is either predefined, a user defined type with a `Matcher` implementation, or a closure returning a `MatchResult`
+///     The `Matcher` is either predefined, a user defined type with a `Matcher` implementation, or a closure returning a `MatchResult`.
 ///
 ///     ```rust,ignore
-///     assert_that!(1, eq(1));
-///     assert_that!(1, |x| {
+///     assert_that!(&1, eq(1));
+///     assert_that!(&1, |x| {
 ///         let builder = MatchResultBuilder::for_("my_matcher");
 ///         if x == 1 { builder.matched } else { builder.failed_because("some reason") }
 ///     })
@@ -57,38 +57,45 @@ use std::fmt::{Debug, Display, Formatter, Result as FormatResult};
 ///     ```
 #[macro_export]
 macro_rules! assert_that {
-    ( $actual: expr, panics ) => {
+    ( $actual: expr, panics ) => {{
         let result = std::panic::catch_unwind(|| { $actual; });
         if result.is_ok() {
             panic!("\nFailed assertion; expected expression to panic")
         }
-    };
+    }};
     ( $actual: expr, does not panic ) => {
         let result = std::panic::catch_unwind(|| { $actual; });
         if result.is_err() {
             panic!("\nFailed assertion; expression panicked unexpectantly")
         }
     };
-    ( $actual: expr) => {
+    ( $actual: expr) => {{
         if !$actual {
             panic!("\nFailed assertion; '{}' is not true", stringify!($actual));
         }
-    };
-    ( $actual: expr , otherwise $reason: expr ) => {
+    }};
+    ( $actual: expr , otherwise $reason: expr ) => {{
         if !$actual {
             panic!("\nFailed assertion; expression '{}' is not true,\n    Because: {}",
                    stringify!($actual), $reason
             );
         }
-    };
-    ( $actual: expr, $matcher: expr ) => {
-        match $matcher.check($actual) {
+    }};
+    ( $actual: expr, $matcher: expr ) => {{
+        //use std::borrow::Borrow;
+        // store the actual value to borrow it
+        let value = $actual;
+        // use borrow to obtain a reference of type &T (either from a value of type T or of &T itself---the beauty of the Borrow)
+        //let ref_to_value: &_ = value.borrow();
+        // store matcher so it's dropped before the actual value (reverse order of declaration)
+        let m = $matcher;
+        match m.check(value) {
             MatchResult::Matched { .. } => { },
             MatchResult::Failed { name, reason } => {
                 panic!("\nFailed assertion of matcher: {}\n{}", name, reason)
             }
         }
-    };
+    }};
 }
 
 /// States that the asserted values satisfies the required properties of the supplied `Matcher`
@@ -108,11 +115,11 @@ macro_rules! assert_that {
 ///     let e2 = get_expectation_for!(EXPRESSION, otherwise "some error message");
 ///     ```
 ///  2. Expect that some expression satifies the properties of some `Matcher`.
-///     The `Matcher` is either predefined, a user defined type with a `Matcher` implementation, or a closure returning a `MatchResult`
+///     The `Matcher` is either predefined, a user defined type with a `Matcher` implementation, or a closure returning a `MatchResult`.
 ///
 ///     ```rust,ignore
-///     let e1 = get_expectation_for!(1, eq(1));
-///     let e2 = get_expectation_for!(1, |x| {
+///     let e1 = get_expectation_for!(&1, eq(1));
+///     let e2 = get_expectation_for!(&1, |x| {
 ///         let builder = MatchResultBuilder::for_("my_matcher");
 ///         if x == 1 { builder.matched } else { builder.failed_because("some reason") }
 ///     })
@@ -121,23 +128,23 @@ macro_rules! assert_that {
 ///
 ///     ```rust,ignore
 ///     let e1 = get_expectation_for!(panic!("panic"), panics);
-///     let e2 = get_expectation_for!(1+1, does not panic);
+///     let e2 = get_expectation_for!(&1+1, does not panic);
 ///     ```
 ///
 /// An expectation can be verfied manually
 ///
 /// ```rust,ignore
-/// let e1 = get_expectation_for!(1+1, equal_to(0));
-/// let e2 = get_expectation_for!(1+1, less_than(4)); // is executed
+/// let e1 = get_expectation_for!(&1+1, equal_to(0));
+/// let e2 = get_expectation_for!(&1+1, less_than(4)); // is executed
 /// e1.verify();
-/// let e3 = get_expectation_for!(1+1, panics); // is never executed as e1 panics
+/// let e3 = get_expectation_for!(&1+1, panics); // is never executed as e1 panics
 /// ```
 /// or is automatically verfied on drop.
 ///
 /// ```rust,ignore
 /// {
-///     let e1 = get_expectation_for!(1+1, equal_to(0));
-///     let e2 = get_expectation_for!(1+1, less_than(4)); // is executed
+///     let e1 = get_expectation_for!(&1+1, equal_to(0));
+///     let e2 = get_expectation_for!(&1+1, less_than(4)); // is executed
 /// }
 /// let e3 = get_expectation_for!(1+1, panics); // is never executed as e1 panics
 /// ```
@@ -181,7 +188,9 @@ macro_rules! get_expectation_for {
         } else { Expectation::satisfied() }
     }};
     ( $actual: expr, $matcher: expr ) => {{
-        match $matcher.check($actual) {
+        let value = $actual;
+        let m = $matcher;
+        match m.check(value) {
             MatchResult::Matched { .. } => { Expectation::satisfied() },
             MatchResult::Failed { name, reason } => {
                 let assertion = format!("'{}' matches '{}'", stringify!($actual), stringify!($matcher));
@@ -210,11 +219,11 @@ macro_rules! get_expectation_for {
 ///     expect_that!(EXPRESSION, otherwise "some error message");
 ///     ```
 ///  2. Expect that some expression satifies the properties of some `Matcher`.
-///     The `Matcher` is either predefined, a user defined type with a `Matcher` implementation, or a closure returning a `MatchResult`
+///     The `Matcher` is either predefined, a user defined type with a `Matcher` implementation, or a closure returning a `MatchResult
 ///
 ///     ```rust,ignore
-///     expect_that!(1, eq(1));
-///     expect_that!(1, |x| {
+///     expect_that!(&1, eq(1));
+///     expect_that!(&1, |x| {
 ///         let builder = MatchResultBuilder::for_("my_matcher");
 ///         if x == 1 { builder.matched } else { builder.failed_because("some reason") }
 ///     })
@@ -230,8 +239,8 @@ macro_rules! get_expectation_for {
 ///
 /// ```rust,ignore
 /// {
-///     expect_that!(1+1, equal_to(0));
-///     expect_that!(1+1, less_than(4)); // is executed
+///     expect_that!(&1+1, equal_to(0));
+///     expect_that!(&1+1, less_than(4)); // is executed
 /// }
 /// expect_that!(1+1, panics); // is never executed as e1 panics
 /// ```
@@ -245,17 +254,19 @@ macro_rules! expect_that {
 }
 
 /// The trait which has to be implemented by all matchers.
-pub trait Matcher<T> {
+pub trait Matcher<'a, T:'a> {
     /// Checks the passed value if it satisfies the `Matcher`.
-    fn check(&self, actual: T) -> MatchResult;
+    ///
+    /// Values are always taken as immutable reference as the actual value shouldn't be changed by the matcher.
+    fn check(&self, actual: &'a T) -> MatchResult;
 }
 
 /// A closures can be used as a `Matcher`.
 ///
 /// The closure must be repeatably callable in case that the matcher is combined with another matcher.
-impl<T, F> Matcher<T> for F
-where F: Fn(T) -> MatchResult + ?Sized {
-    fn check(&self, actual: T) -> MatchResult {
+impl<'a, T:'a, F> Matcher<'a,T> for F
+where F: Fn(&'a T) -> MatchResult + ?Sized {
+    fn check(&self, actual: &'a T) -> MatchResult {
         self(actual)
     }
 }

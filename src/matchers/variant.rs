@@ -31,15 +31,15 @@
 #[macro_export]
 macro_rules! is_variant {
     ( $variant: path ) => {
-        |actual| {
+        Box::new(|actual: &_| {
             use galvanic_assert::MatchResultBuilder;
             let builder = MatchResultBuilder::for_("is_variant");
             match actual {
-                $variant {..} => builder.matched(),
+                &$variant {..} => builder.matched(),
                 _ => builder.failed_because(
                         &format!("passed variant does not match '{}'", stringify!($variant))
                 )
             }
-        }
+        })
     }
 }

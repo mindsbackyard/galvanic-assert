@@ -25,9 +25,9 @@ use galvanic_assert::matchers::*;
 
 #[test]
 fn expression_should_compute_correct_value {
-    assert_that!(1+2, eq(3));
+    assert_that!(&1+2, eq(3));
     // or more wordy ...
-    assert_that!(1+2, is(eq(3)));
+    assert_that!(&1+2, is(eq(3)));
 }
 ```
 
@@ -37,9 +37,9 @@ use galvanic_assert::matchers::collection::*;
 #[test]
 fn expression_should_compute_correct_value {
     /// check for containment
-    assert_that!(vec![5,1,3,4,2], contains_in_any_order(vec![1,2,3,4,5]));
+    assert_that!(&vec![5,1,3,4,2], contains_in_any_order(vec![1,2,3,4,5]));
     // check for internal structure
-    assert_that!(vec![4,3,2,1], sorted_descending());
+    assert_that!(&vec![4,3,2,1], sorted_descending());
 }
 ```
 
@@ -54,7 +54,7 @@ enum Variants {
 #[test]
 fn should_be_the_correct_variant {
     let var = Second { x: 1, y: 2 };
-    assert_that!(var, is_variant!(Variants::Second));
+    assert_that!(&var, is_variant!(Variants::Second));
 }
 ```
 
@@ -63,11 +63,11 @@ It is also possible to combine multiple matchers to create more expressive ones 
 #[test]
 fn expression_should_compute_correct_value {
     // invert the meaning of a matcher
-    assert_that!(1+2, not(greater_than(3)));
+    assert_that!(&1+2, not(greater_than(3)));
     // join several matchers conjunctively
-    assert_that!(1+2, all_of!(greater_than(0), less_than(5)));
+    assert_that!(&1+2, all_of!(greater_than(0), less_than(5)));
     // join several matchers disjunctively
-    assert_that!(1+2, any_of!(greater_than(5), less_than(5)));
+    assert_that!(&1+2, any_of!(greater_than(5), less_than(5)));
 }
 ```
 
@@ -75,7 +75,7 @@ If this is not enough you can write your own matchers, either as a closure ...
 ```rust
 #[test]
 fn expression_should_compute_correct_value {
-    assert_that!(1+2, |x| {
+    assert_that!(&1+2, |x| {
         let builder = MatchResultBuilder::for_("odd");
         if x % 2 == 1 { builder.matched() } else { builder.failed_because("result is not odd") }
     });
@@ -130,8 +130,8 @@ The condition is still checked at the point of specification but the inspection 
 The `expect_that!` macro defers the inspection of the result until the end of the current block:
 ```rust
 {
-    expect_that!(1+1, equal_to(0));
-    expect_that!(1+1, less_than(4)); // is executed
+    expect_that!(&1+1, equal_to(0));
+    expect_that!(&1+1, less_than(4)); // is executed
 }
 expect_that!(1+1, panics); // is never executed as e1 panics
 ```
@@ -139,16 +139,16 @@ expect_that!(1+1, panics); // is never executed as e1 panics
 The `get_expectation_for!` macro allows for more fine grained control.
 It returns an `Expectation` object which can be verified by calling `verify` ...
 ```rust
-let e1 = get_expectation_for!(1+1, equal_to(0));
-let e2 = get_expectation_for!(1+1, less_than(4)); // is executed
+let e1 = get_expectation_for!(&1+1, equal_to(0));
+let e2 = get_expectation_for!(&1+1, less_than(4)); // is executed
 e1.verify();
-let e3 = get_expectation_for!(1+1, panics); // is never executed as e1 panics
+let e3 = get_expectation_for!(&1+1, panics); // is never executed as e1 panics
 ```
 ... or will be automatically verified once the object goes out of scope.
 ```rust
 {
-    let e1 = get_expectation_for!(1+1, equal_to(0));
-    let e2 = get_expectation_for!(1+1, less_than(4)); // is executed
+    let e1 = get_expectation_for!(&1+1, equal_to(0));
+    let e2 = get_expectation_for!(&1+1, less_than(4)); // is executed
 }
 let e3 = get_expectation_for!(1+1, panics); // is never executed as e1 panics
 ```
