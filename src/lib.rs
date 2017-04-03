@@ -82,6 +82,7 @@ macro_rules! assert_that {
         }
     }};
     ( $actual: expr, $matcher: expr ) => {{
+        use galvanic_assert::MatchResult;
         //use std::borrow::Borrow;
         // store the actual value to borrow it
         let value = $actual;
@@ -151,6 +152,7 @@ macro_rules! assert_that {
 #[macro_export]
 macro_rules! get_expectation_for {
     ( $actual: expr, panics ) => {{
+        use galvanic_assert::Expectation;
         let result = std::panic::catch_unwind(|| { $actual; });
         if result.is_ok() {
             let assertion = format!("'{}, panics'", stringify!($actual));
@@ -162,6 +164,7 @@ macro_rules! get_expectation_for {
         }
     }};
     ( $actual: expr, does not panic ) => {{
+        use galvanic_assert::Expectation;
         let result = std::panic::catch_unwind(|| { $actual; });
         if result.is_err() {
             let assertion = format!("'{}, does not panic'", stringify!($actual));
@@ -171,6 +174,7 @@ macro_rules! get_expectation_for {
         } else { Expectation::satisfied() }
     }};
     ( $actual: expr) => {{
+        use galvanic_assert::Expectation;
         if !$actual {
             let assertion = format!("'{}' is true", stringify!($actual));
             Expectation::failed(assertion, file!().to_string(), line!(),
@@ -179,6 +183,7 @@ macro_rules! get_expectation_for {
         } else { Expectation::satisfied() }
     }};
     ( $actual: expr , otherwise $reason: expr ) => {{
+        use galvanic_assert::Expectation;
         if !$actual {
             let assertion = format!("'{}' is true", stringify!($actual));
             Expectation::failed(assertion, file!().to_string(), line!(),
@@ -188,6 +193,7 @@ macro_rules! get_expectation_for {
         } else { Expectation::satisfied() }
     }};
     ( $actual: expr, $matcher: expr ) => {{
+        use galvanic_assert::{Expectation, MatchResult};
         let value = $actual;
         let m = $matcher;
         match m.check(value) {
