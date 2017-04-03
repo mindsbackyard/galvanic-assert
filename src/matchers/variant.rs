@@ -19,11 +19,11 @@
 ///
 /// # Examples
 /// If the enum's variants are already imported one can write:
-/// ```
+/// ```rust,ignore
 /// assert_that!(Ok(4), is_variant!(Ok));
-/// ```
+/// ```rust,ignore
 /// If not then the full path of the variant has to be used:
-/// ```
+/// ```rust,ignore
 /// enum MyEnum { Foo, Bar(i32), Baz{x: i32} }
 ///
 /// assert_that!(MyEnum::Baz{x: 2}, is_variant!(MyEnum::Baz));
