@@ -16,7 +16,6 @@
 #[macro_use]
 extern crate galvanic_assert;
 
-use galvanic_assert::*;
 use galvanic_assert::matchers::*;
 
 mod all_of {
@@ -112,7 +111,6 @@ mod combining_combinators {
 }
 
 mod combining_variant_matchers {
-    use galvanic_assert::*;
     use galvanic_assert::matchers::*;
 
     #[allow(dead_code)]

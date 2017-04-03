@@ -16,7 +16,6 @@
 #[macro_use]
 extern crate galvanic_assert;
 
-use galvanic_assert::*;
 use galvanic_assert::matchers::*;
 
 mod get_expectation_for {
@@ -132,8 +131,6 @@ mod expect_that {
     use super::*;
 
     mod use_expression {
-        use super::*;
-
         #[test]
         fn should_expect_an_expression_to_be_true() {
             expect_that!(1 == 1);

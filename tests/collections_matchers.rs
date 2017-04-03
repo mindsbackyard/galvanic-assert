@@ -16,11 +16,10 @@
 #[macro_use]
 extern crate galvanic_assert;
 
-use galvanic_assert::*;
 use galvanic_assert::matchers::collection::*;
 
 mod contains_in_any_order {
-    use super::{std, MatchResult, contains_in_any_order};
+    use super::{std, contains_in_any_order};
 
     #[test]
     fn should_match() {
@@ -50,7 +49,7 @@ mod contains_in_any_order {
 }
 
 mod contains_in_order {
-    use super::{std, MatchResult, contains_in_order};
+    use super::{std, contains_in_order};
 
     #[test]
     fn should_match() {
@@ -88,7 +87,7 @@ mod contains_in_order {
 }
 
 mod contains_subset {
-    use super::{std, MatchResult, contains_subset};
+    use super::{std, contains_subset};
 
     #[test]
     fn should_match() {
@@ -115,7 +114,7 @@ mod contains_subset {
 }
 
 mod contained_in {
-    use super::{std, MatchResult, contained_in};
+    use super::{std, contained_in};
 
     #[test]
     fn should_match() {
@@ -132,7 +131,7 @@ mod contained_in {
 }
 
 mod sorted_by {
-    use super::{std, Matcher, MatchResult, sorted_by};
+    use super::{std, sorted_by};
 
     #[test]
     fn should_match_single_element() {
@@ -182,7 +181,7 @@ mod sorted_by {
 }
 
 mod sorted_strictly_by {
-    use super::{std, Matcher, MatchResult, sorted_strictly_by};
+    use super::{std, sorted_strictly_by};
 
     #[test]
     fn should_match_single_element() {
@@ -225,7 +224,7 @@ mod sorted_strictly_by {
 }
 
 mod sorted_by_in_any_order {
-    use super::{std, Matcher, MatchResult, sorted_by_in_any_order};
+    use super::{std, sorted_by_in_any_order};
 
     #[test]
     fn should_match_single_element() {
@@ -275,7 +274,7 @@ mod sorted_by_in_any_order {
 }
 
 mod sorted_strictly_by_in_any_order {
-    use super::{std, Matcher, MatchResult, sorted_strictly_by_in_any_order};
+    use super::{std, sorted_strictly_by_in_any_order};
 
     #[test]
     fn should_match_single_element() {
@@ -323,7 +322,7 @@ mod sorted_strictly_by_in_any_order {
 }
 
 mod sorted_ascending {
-    use super::{std, Matcher, MatchResult, sorted_ascending};
+    use super::{std, sorted_ascending};
 
     #[test]
     fn should_match() {
@@ -354,7 +353,7 @@ mod sorted_ascending {
 }
 
 mod sorted_strictly_ascending {
-    use super::{std, Matcher, MatchResult, sorted_strictly_ascending};
+    use super::{std, sorted_strictly_ascending};
 
     #[test]
     fn should_match() {
@@ -392,7 +391,7 @@ mod sorted_strictly_ascending {
 }
 
 mod sorted_descending {
-    use super::{std, Matcher, MatchResult, sorted_descending};
+    use super::{std, sorted_descending};
 
     #[test]
     fn should_match() {
@@ -422,7 +421,7 @@ mod sorted_descending {
 }
 
 mod sorted_strictly_descending {
-    use super::{std, Matcher, MatchResult, sorted_strictly_descending};
+    use super::{std, sorted_strictly_descending};
 
     #[test]
     fn should_match() {
@@ -460,7 +459,7 @@ mod sorted_strictly_descending {
 }
 
 mod all_elements_satisfy {
-    use super::{std, Matcher, MatchResult, all_elements_satisfy};
+    use super::{std, all_elements_satisfy};
 
     #[test]
     fn should_match() {
@@ -482,7 +481,7 @@ mod all_elements_satisfy {
 }
 
 mod some_elements_satisfy {
-    use super::{std, Matcher, MatchResult, some_elements_satisfy};
+    use super::{std, some_elements_satisfy};
 
     #[test]
     fn should_match() {
@@ -507,10 +506,10 @@ mod some_elements_satisfy {
 }
 
 mod has_entry {
-    use super::{std, MatchResult, has_entry};
+    use super::{std, has_entry};
 
     mod ordered_map {
-        use super::{std, MatchResult, has_entry};
+        use super::{std, has_entry};
 
         #[test]
         fn should_match() {
@@ -543,7 +542,7 @@ mod has_entry {
     }
 
     mod hash_map {
-        use super::{std, MatchResult, has_entry};
+        use super::{std, has_entry};
 
         #[test]
         fn should_match() {
@@ -577,10 +576,10 @@ mod has_entry {
 }
 
 mod has_key {
-    use super::{std, MatchResult, has_key};
+    use super::{std, has_key};
 
     mod ordered_map {
-        use super::{std, MatchResult, has_key};
+        use super::{std, has_key};
 
         #[test]
         fn should_match() {
@@ -603,7 +602,7 @@ mod has_key {
     }
 
     mod hash_map {
-        use super::{std, MatchResult, has_key};
+        use super::{std, has_key};
 
         #[test]
         fn should_match() {

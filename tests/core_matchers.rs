@@ -16,7 +16,6 @@
 #[macro_use]
 extern crate galvanic_assert;
 
-use galvanic_assert::*;
 use galvanic_assert::matchers::*;
 
 use std::result::Result;

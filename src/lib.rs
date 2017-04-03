@@ -82,7 +82,8 @@ macro_rules! assert_that {
         }
     }};
     ( $actual: expr, $matcher: expr ) => {{
-        use galvanic_assert::MatchResult;
+        #[allow(unused_imports)]
+        use galvanic_assert::{MatchResult, Matcher};
         //use std::borrow::Borrow;
         // store the actual value to borrow it
         let value = $actual;
@@ -193,7 +194,8 @@ macro_rules! get_expectation_for {
         } else { Expectation::satisfied() }
     }};
     ( $actual: expr, $matcher: expr ) => {{
-        use galvanic_assert::{Expectation, MatchResult};
+        #[allow(unused_imports)]
+        use galvanic_assert::{Expectation, MatchResult, Matcher};
         let value = $actual;
         let m = $matcher;
         match m.check(value) {

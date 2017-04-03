@@ -16,8 +16,6 @@
 #[macro_use]
 extern crate galvanic_assert;
 
-use galvanic_assert::*;
-
 #[allow(dead_code)]
 #[derive(Debug)]
 enum MyEnum {
