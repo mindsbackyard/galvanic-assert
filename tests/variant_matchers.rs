@@ -39,3 +39,78 @@ mod is_variant {
         );
     }
 }
+
+mod maybe_some {
+    use galvanic_assert::matchers::equal_to;
+    use galvanic_assert::matchers::variant::maybe_some;
+
+    #[test]
+    fn should_succeed() {
+        let maybe_int = Some(2);
+        assert_that!(&maybe_int, maybe_some(equal_to(2)));
+    }
+
+    #[test]
+    #[should_panic]
+    fn should_fail_because_of_none_value() {
+        let maybe_int = None;
+        assert_that!(&maybe_int, maybe_some(equal_to(2)));
+    }
+
+    #[test]
+    #[should_panic]
+    fn should_fail_because_nested_matcher_fails() {
+        let maybe_int = Some(3);
+        assert_that!(&maybe_int, maybe_some(equal_to(2)));
+    }
+}
+
+mod maybe_ok {
+    use galvanic_assert::matchers::equal_to;
+    use galvanic_assert::matchers::variant::maybe_ok;
+
+    #[test]
+    fn should_succeed() {
+        let maybe_int: Result<i32, String> = Ok(2);
+        assert_that!(&maybe_int, maybe_ok(equal_to(2)));
+    }
+
+    #[test]
+    #[should_panic]
+    fn should_fail_because_of_none_value() {
+        let maybe_int: Result<i32, String> = Err("Failed".to_owned());
+        assert_that!(&maybe_int, maybe_ok(equal_to(2)));
+    }
+
+    #[test]
+    #[should_panic]
+    fn should_fail_because_nested_matcher_fails() {
+        let maybe_int: Result<i32, String> = Ok(3);
+        assert_that!(&maybe_int, maybe_ok(equal_to(2)));
+    }
+}
+
+mod maybe_err {
+    use galvanic_assert::matchers::equal_to;
+    use galvanic_assert::matchers::variant::maybe_err;
+
+    #[test]
+    fn should_succeed() {
+        let maybe_int: Result<String, i32> = Err(2);
+        assert_that!(&maybe_int, maybe_err(equal_to(2)));
+    }
+
+    #[test]
+    #[should_panic]
+    fn should_fail_because_of_none_value() {
+        let maybe_int: Result<String, i32> = Ok("Ok".to_owned());
+        assert_that!(&maybe_int, maybe_err(equal_to(2)));
+    }
+
+    #[test]
+    #[should_panic]
+    fn should_fail_because_nested_matcher_fails() {
+        let maybe_int: Result<String, i32> = Err(3);
+        assert_that!(&maybe_int, maybe_err(equal_to(2)));
+    }
+}

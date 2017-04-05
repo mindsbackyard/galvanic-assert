@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
-//! The variant module contains matchers for asserting properties of enums.
+//! The variant module contains matchers for asserting properties of enums and convienience functions for Option and Result.
+
+use super::super::*;
 
 /// Matches if the asserted value's variant matches the expected variant.
 ///
@@ -42,4 +44,37 @@ macro_rules! is_variant {
             }
         })
     }
+}
+
+/// Matches the contents of an `Option` againts a passed `Matcher`.
+pub fn maybe_some<'a, T: 'a>(matcher: Box<Matcher<'a,T> + 'a>) -> Box<Matcher<'a,Option<T>> + 'a> {
+    Box::new(move |maybe_actual: &'a Option<T>| {
+        maybe_actual.as_ref()
+                    .map_or(MatchResultBuilder::for_("maybe_some")
+                                               .failed_because("passed Option is None; cannot evaluate nested matcher"),
+                            |actual| matcher.check(actual)
+        )
+    })
+}
+
+/// Matches the contents of a `Result` if it is `Ok` againts a passed `Matcher`.
+pub fn maybe_ok<'a, T: 'a, E: 'a>(matcher: Box<Matcher<'a,T> + 'a>) -> Box<Matcher<'a,Result<T,E>> + 'a> {
+    Box::new(move |maybe_actual: &'a Result<T,E>| {
+        match maybe_actual.as_ref() {
+            Ok(actual) => matcher.check(actual),
+            Err(_) => MatchResultBuilder::for_("maybe_ok")
+                                       .failed_because("passed Result is Err; cannot evaluate nested matcher")
+        }
+    })
+}
+
+/// Matches the contents of a `Result` if it is `Err` againts a passed `Matcher`.
+pub fn maybe_err<'a, T: 'a, E: 'a>(matcher: Box<Matcher<'a,E> + 'a>) -> Box<Matcher<'a,Result<T,E>> + 'a> {
+    Box::new(move |maybe_actual: &'a Result<T,E>| {
+        match maybe_actual.as_ref() {
+            Err(actual) => matcher.check(actual),
+            Ok(_) => MatchResultBuilder::for_("maybe_err")
+                                        .failed_because("passed Result is Ok; cannot evaluate nested matcher")
+        }
+    })
 }
