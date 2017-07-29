@@ -284,6 +284,14 @@ mod has_structure {
             }));
         }
 
+        #[test]
+        fn should_match_incomplete_field_list() {
+            let foo = Foo { x: 12, y: 23.4 };
+            assert_that!(&foo, structure!(Foo {
+                y: lt(25.0)
+            }));
+        }
+
         #[test]#[should_panic]
         fn should_fail() {
             let foo = Foo { x: 12, y: 23.4 };
