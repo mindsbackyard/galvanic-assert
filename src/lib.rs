@@ -28,7 +28,7 @@
 
 use std::fmt::{Debug, Display, Formatter, Result as FormatResult};
 
-/// States that the asserted values satisfies the required properties of the supplied `Matcher`.
+/// States that the asserted value satisfies the required properties of the supplied `Matcher`.
 ///
 /// The postulated assertion is verfied immediately and panics if it is not satisfied.
 /// The macro comes in three different forms:
@@ -40,11 +40,12 @@ use std::fmt::{Debug, Display, Formatter, Result as FormatResult};
 ///     assert_that!(EXPRESSION, otherwise "some error message");
 ///     ```
 ///  2. Assert that some expression satifies the properties of some `Matcher`.
+///     Expressions used with `Matcher`s **must return a reference** to a value.
 ///     The `Matcher` is either predefined, a user defined type with a `Matcher` implementation, or a closure returning a `MatchResult`.
 ///
 ///     ```rust,ignore
 ///     assert_that!(&1, eq(1));
-///     assert_that!(&1, |x| {
+///     assert_that!(&1, |&x| {
 ///         let builder = MatchResultBuilder::for_("my_matcher");
 ///         if x == 1 { builder.matched } else { builder.failed_because("some reason") }
 ///     })
@@ -84,11 +85,8 @@ macro_rules! assert_that {
     ( $actual: expr, $matcher: expr ) => {{
         #[allow(unused_imports)]
         use galvanic_assert::{MatchResult, Matcher};
-        //use std::borrow::Borrow;
         // store the actual value to borrow it
         let value = $actual;
-        // use borrow to obtain a reference of type &T (either from a value of type T or of &T itself---the beauty of the Borrow)
-        //let ref_to_value: &_ = value.borrow();
         // store matcher so it's dropped before the actual value (reverse order of declaration)
         let m = $matcher;
         match m.check(value) {
@@ -117,6 +115,7 @@ macro_rules! assert_that {
 ///     let e2 = get_expectation_for!(EXPRESSION, otherwise "some error message");
 ///     ```
 ///  2. Expect that some expression satifies the properties of some `Matcher`.
+///     Expressions used with `Matcher`s **must return a reference** to a value.
 ///     The `Matcher` is either predefined, a user defined type with a `Matcher` implementation, or a closure returning a `MatchResult`.
 ///
 ///     ```rust,ignore
@@ -227,6 +226,7 @@ macro_rules! get_expectation_for {
 ///     expect_that!(EXPRESSION, otherwise "some error message");
 ///     ```
 ///  2. Expect that some expression satifies the properties of some `Matcher`.
+///     Expressions used with `Matcher`s **must return a reference** to a value.
 ///     The `Matcher` is either predefined, a user defined type with a `Matcher` implementation, or a closure returning a `MatchResult
 ///
 ///     ```rust,ignore
@@ -269,7 +269,7 @@ pub trait Matcher<'a, T:'a> {
     fn check(&self, actual: &'a T) -> MatchResult;
 }
 
-/// A closures can be used as a `Matcher`.
+/// A closure can be used as a `Matcher`.
 ///
 /// The closure must be repeatably callable in case that the matcher is combined with another matcher.
 impl<'a, T:'a, F> Matcher<'a,T> for F
@@ -292,6 +292,24 @@ pub enum MatchResult {
         name: String,
         /// The `reason` why the `Matcher` failed
         reason: String
+    }
+}
+
+impl std::convert::From<MatchResult> for bool {
+    fn from(result: MatchResult) -> bool {
+        match result {
+            MatchResult::Matched {..} => true,
+            MatchResult::Failed {..} => false
+        }
+    }
+}
+
+impl<'a> std::convert::From<&'a MatchResult> for bool {
+    fn from(result: &'a MatchResult) -> bool {
+        match result {
+            &MatchResult::Matched {..} => true,
+            &MatchResult::Failed {..} => false
+        }
     }
 }
 
@@ -387,7 +405,7 @@ impl Expectation {
 impl Drop for Expectation {
     fn drop(&mut self) {
         if let &mut Expectation::Failed { .. } = self {
-            println!("{}", self);
+            eprintln!("{}", self);
             if !std::thread::panicking() {
                 panic!("Some expectations failed.")
             }
@@ -409,3 +427,19 @@ impl Display for Expectation {
 }
 
 pub mod matchers;
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn should_bool() {
+        let matched = MatchResultBuilder::new().matched();
+        let failed = MatchResultBuilder::new().failed_because("");
+
+        let flag: bool = matched.into();
+        assert!(flag);
+        let flag: bool = failed.into();
+        assert!(!flag);
+    }
+}
