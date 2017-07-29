@@ -26,6 +26,24 @@ pub struct ContainsInAnyOrder<T> {
 }
 
 /// Matches if the asserted collection contains *all and only* of the expected elements in any order.
+///
+/// #Examples
+/// ```rust
+/// # #[macro_use] extern crate galvanic_assert;
+/// use galvanic_assert::matchers::collection::*;
+/// # fn main() {
+/// assert_that!(&vec![1,2,3,4,5,6], contains_in_any_order(vec![2,4,1,5,3,6]));
+/// assert_that!(
+///     // 6 is missing
+///     assert_that!(&vec![1,2,3,4,5,6], contains_in_any_order(vec![2,4,1,5,3])),
+///     panics
+/// );
+/// assert_that!(
+///     // 7 is added
+///     assert_that!(&vec![1,2,3,4,5,6], contains_in_any_order(vec![2,4,1,5,3,6,7])),
+///     panics
+/// );
+/// # }
 pub fn contains_in_any_order<'a,T:'a,I:'a>(expected_elements: I) -> Box<Matcher<'a,I> + 'a>
 where T: PartialEq + Debug,
       I: IntoIterator<Item=T>,
@@ -69,6 +87,24 @@ pub struct ContainsInOrder<T> {
 }
 
 /// Matches if the asserted collection contains *all and only* of the expected elements in the given order.
+///
+/// #Examples
+/// ```rust
+/// # #[macro_use] extern crate galvanic_assert;
+/// use galvanic_assert::matchers::collection::*;
+/// # fn main() {
+/// assert_that!(&vec![1,2,3,4,5,6], contains_in_order(vec![1,2,3,4,5,6]));
+/// assert_that!(
+///     // 6 is missing
+///     assert_that!(&vec![1,2,3,4,5,6], contains_in_order(vec![1,2,3,4,5])),
+///     panics
+/// );
+/// assert_that!(
+///     // 7 is added
+///     assert_that!(&vec![1,2,3,4,5,6], contains_in_order(vec![1,2,3,4,5,6,7])),
+///     panics
+/// );
+/// # }
 pub fn contains_in_order<'a,T:'a,I:'a>(expected_elements: I) -> Box<Matcher<'a,I> + 'a>
 where T: PartialEq + Debug,
       I: IntoIterator<Item=T>,
@@ -117,6 +153,14 @@ pub struct ContainsSubset<T> {
 }
 
 /// Matches if the asserted collection contains *all* (possibly more) of the expected elements.
+///
+/// #Examples
+/// ```rust
+/// # #[macro_use] extern crate galvanic_assert;
+/// use galvanic_assert::matchers::collection::*;
+/// # fn main() {
+/// assert_that!(&vec![1,2,3,4,5,6], contains_subset(vec![3,1,2,4]));
+/// # }
 pub fn contains_subset<'a,T:'a,I:'a>(expected_elements: I) -> Box<Matcher<'a,I> + 'a>
 where T: PartialEq + Debug,
       I: IntoIterator<Item=T>,
@@ -156,6 +200,14 @@ pub struct ContainedIn<T> {
 }
 
 /// Matches if the asserted (single) value is contained in the expected elements.
+///
+/// #Examples
+/// ```rust
+/// # #[macro_use] extern crate galvanic_assert;
+/// use galvanic_assert::matchers::collection::*;
+/// # fn main() {
+/// assert_that!(&5, contained_in(vec![1,2,3,4,5,6,7,8]));
+/// # }
 pub fn contained_in<'a,T:'a,I>(expected_to_contain: I) -> Box<Matcher<'a,T> + 'a>
 where T: PartialEq + Debug,
       I: IntoIterator<Item=T> {
@@ -181,6 +233,15 @@ where T: PartialEq + Debug + 'a  {
 /// The `predicate` is applied to all consecutive pairs of elements and returns the `Ordering` of the pair.
 /// The ordering is allowed to be weakly monotone, i.e., equal elements are allowed to follow each other.
 /// An empty collection is assumed to be always sorted.
+///
+/// #Examples
+/// ```rust
+/// # #[macro_use] extern crate galvanic_assert;
+/// use galvanic_assert::matchers::collection::*;
+/// use std::cmp::Ordering;
+/// # fn main() {
+/// assert_that!(&vec![1,2,2,3,3,4,5,6], sorted_by(|a: &i32, b: &i32| a.cmp(b), Ordering::Less));
+/// # }
 pub fn sorted_by<'a,T,I,P>(predicate: P, expected_ordering: std::cmp::Ordering) -> Box<Fn(&'a I) -> MatchResult>
 where &'a I: IntoIterator<Item=&'a T> + 'a,
       T: Ord + Debug + 'a,
@@ -213,6 +274,15 @@ where &'a I: IntoIterator<Item=&'a T> + 'a,
 /// The `predicate` is applied to all consecutive pairs of elements and returns the `Ordering` of the pair.
 /// The ordering is allowed to be weakly monotone, i.e., equal elements are allowed to follow each other.
 /// An empty collection is assumed to be always sorted.
+///
+/// #Examples
+/// ```rust
+/// # #[macro_use] extern crate galvanic_assert;
+/// use galvanic_assert::matchers::collection::*;
+/// use std::cmp::Ordering;
+/// # fn main() {
+/// assert_that!(&vec![1,2,3,4,5,6], sorted_strictly_by(|a: &i32, b: &i32| a.cmp(b), Ordering::Less));
+/// # }
 pub fn sorted_strictly_by<'a,T,I,P>(predicate: P, expected_ordering: std::cmp::Ordering) -> Box<Fn(&'a I) -> MatchResult>
 where &'a I: IntoIterator<Item=&'a T> + 'a,
       T: Ord + Debug + 'a,
@@ -244,6 +314,15 @@ where &'a I: IntoIterator<Item=&'a T> + 'a,
 /// The first `Ordering` different to `Ordering::Equal` defines the expected order of the collection.
 /// The ordering is allowed to be weakly monotone, i.e., equal elements are allowed to follow each other.
 /// An empty collection is assumed to be always sorted.
+///
+/// #Examples
+/// ```rust
+/// # #[macro_use] extern crate galvanic_assert;
+/// use galvanic_assert::matchers::collection::*;
+/// # fn main() {
+/// assert_that!(&vec![5,4,3,3,2,1,1], sorted_by_in_any_order(|a: &i32, b: &i32| a.cmp(b)));
+/// assert_that!(&vec![1,1,2,3,3,4,5], sorted_by_in_any_order(|a: &i32, b: &i32| a.cmp(b)));
+/// # }
 pub fn sorted_by_in_any_order<'a,T,I,P>(predicate: P) -> Box<Fn(&'a I) -> MatchResult>
 where &'a I: IntoIterator<Item=&'a T> + 'a,
       T: Ord + Debug + 'a,
@@ -281,6 +360,15 @@ where &'a I: IntoIterator<Item=&'a T> + 'a,
 /// The first `Ordering` different to `Ordering::Equal` defines the expected order of the collection.
 /// The ordering is allowed to be weakly monotone, i.e., equal elements are allowed to follow each other.
 /// An empty collection is assumed to be always sorted.
+///
+/// #Examples
+/// ```rust
+/// # #[macro_use] extern crate galvanic_assert;
+/// use galvanic_assert::matchers::collection::*;
+/// # fn main() {
+/// assert_that!(&vec![5,4,3,2,1], sorted_strictly_by_in_any_order(|a: &i32, b: &i32| a.cmp(b)));
+/// assert_that!(&vec![1,2,3,4,5], sorted_strictly_by_in_any_order(|a: &i32, b: &i32| a.cmp(b)));
+/// # }
 pub fn sorted_strictly_by_in_any_order<'a,T,I,P>(predicate: P) -> Box<Fn(&'a I) -> MatchResult>
 where &'a I: IntoIterator<Item=&'a T> + 'a,
       T: Ord + Debug + 'a,
@@ -320,6 +408,14 @@ where &'a I: IntoIterator<Item=&'a T> + 'a,
 /// Matches if the asserted collection is sorted weakly ascending.
 ///
 /// An empty collection is assumed to be always sorted.
+///
+/// #Examples
+/// ```rust
+/// # #[macro_use] extern crate galvanic_assert;
+/// use galvanic_assert::matchers::collection::*;
+/// # fn main() {
+/// assert_that!(&vec![1,2,2,3,4,4,5], sorted_ascending());
+/// # }
 pub fn sorted_ascending<'a,T,I>() -> Box<Fn(&'a I) -> MatchResult>
 where &'a I: IntoIterator<Item=&'a T> + 'a,
       T: Ord + Debug + 'a {
@@ -329,6 +425,14 @@ where &'a I: IntoIterator<Item=&'a T> + 'a,
 /// Matches if the asserted collection is sorted strictly ascending.
 ///
 /// An empty collection is assumed to be always sorted.
+///
+/// #Examples
+/// ```rust
+/// # #[macro_use] extern crate galvanic_assert;
+/// use galvanic_assert::matchers::collection::*;
+/// # fn main() {
+/// assert_that!(&vec![1,2,3,4,5], sorted_strictly_ascending());
+/// # }
 pub fn sorted_strictly_ascending<'a,T,I>() -> Box<Fn(&'a I) -> MatchResult>
 where &'a I: IntoIterator<Item=&'a T> + 'a,
       T: Ord + Debug + 'a {
@@ -338,6 +442,14 @@ where &'a I: IntoIterator<Item=&'a T> + 'a,
 /// Matches if the asserted collection is sorted weakly descending.
 ///
 /// An empty collection is assumed to be always sorted.
+///
+/// #Examples
+/// ```rust
+/// # #[macro_use] extern crate galvanic_assert;
+/// use galvanic_assert::matchers::collection::*;
+/// # fn main() {
+/// assert_that!(&vec![5,4,4,3,3,2,1], sorted_descending());
+/// # }
 pub fn sorted_descending<'a,T,I>() -> Box<Fn(&'a I) -> MatchResult>
 where &'a I: IntoIterator<Item=&'a T> + 'a,
       T: Ord + Debug + 'a {
@@ -347,6 +459,14 @@ where &'a I: IntoIterator<Item=&'a T> + 'a,
 /// Matches if the asserted collection is sorted strictly descending.
 ///
 /// An empty collection is assumed to be always sorted.
+///
+/// #Examples
+/// ```rust
+/// # #[macro_use] extern crate galvanic_assert;
+/// use galvanic_assert::matchers::collection::*;
+/// # fn main() {
+/// assert_that!(&vec![5,4,3,2,1], sorted_strictly_descending());
+/// # }
 pub fn sorted_strictly_descending<'a,T,I>() -> Box<Fn(&'a I) -> MatchResult>
 where &'a I: IntoIterator<Item=&'a T> + 'a,
       T: Ord + Debug + 'a {
@@ -356,6 +476,14 @@ where &'a I: IntoIterator<Item=&'a T> + 'a,
 /// Matches if all elements in the asserted collection satisfy the given `predicate`.
 ///
 /// An empty collection always satisfies this matcher as all (=no) element satisfies the predicate.
+///
+/// #Examples
+/// ```rust
+/// # #[macro_use] extern crate galvanic_assert;
+/// use galvanic_assert::matchers::collection::*;
+/// # fn main() {
+/// assert_that!(&vec![1,2,3,4,5], all_elements_satisfy(|&a| 0 <= a && a < 100));
+/// # }
 pub fn all_elements_satisfy<'a,T,I,P>(predicate: P) -> Box<Fn(&'a I) -> MatchResult>
 where T: Debug + 'a,
       &'a I: IntoIterator<Item=&'a T> + 'a,
@@ -376,6 +504,14 @@ where T: Debug + 'a,
 /// Matches if at least one element in the asserted collection satisfy the given `predicate`.
 ///
 /// An empty collection never satisfies this matcher as no element satisfies the predicate.
+///
+/// #Examples
+/// ```rust
+/// # #[macro_use] extern crate galvanic_assert;
+/// use galvanic_assert::matchers::collection::*;
+/// # fn main() {
+/// assert_that!(&vec![1,2,3,4,5], some_elements_satisfy(|&a| 2 <= a && a < 5));
+/// # }
 pub fn some_elements_satisfy<'a,T,I,P>(predicate: P) -> Box<Fn(&'a I) -> MatchResult>
 where T: Debug + 'a,
       &'a I: IntoIterator<Item=&'a T> + 'a,
@@ -409,6 +545,21 @@ pub struct HasEntry<K,V> {
 ///
 /// The alternative would be to use the Index trait though experiments showed
 /// that this would not be composable with `all_of!` or `any_of!`.
+///
+/// #Examples
+/// ```rust
+/// # #[macro_use] extern crate galvanic_assert;
+/// use galvanic_assert::matchers::collection::*;
+/// # fn main() {
+/// let mut map = std::collections::HashMap::<i32,i32>::new();
+/// map.insert(0, 2);
+/// map.insert(1, 2);
+/// map.insert(2, 5);
+/// map.insert(3, 3);
+/// map.insert(4, 3);
+///
+/// assert_that!(&map, has_entry(1, 2));
+/// # }
 pub fn has_entry<'a,K:'a,V:'a,M:'a>(key: K, value: V) -> Box<Matcher<'a,M> + 'a>
 where &'a M: IntoIterator<Item=(&'a K,&'a V)> + 'a,
       HasEntry<K,V>: Matcher<'a,M> {
@@ -465,6 +616,21 @@ pub struct HasKey<K> {
 ///
 /// The alternative would be to use the Index trait though experiments showed
 /// that this would not be composable with `all_of!` or `any_of!`.
+///
+/// #Examples
+/// ```rust
+/// # #[macro_use] extern crate galvanic_assert;
+/// use galvanic_assert::matchers::collection::*;
+/// # fn main() {
+/// let mut map = std::collections::HashMap::<i32,i32>::new();
+/// map.insert(0, 2);
+/// map.insert(1, 2);
+/// map.insert(2, 5);
+/// map.insert(3, 3);
+/// map.insert(4, 3);
+///
+/// assert_that!(&map, has_key(2));
+/// # }
 pub fn has_key<'a,K:'a,V:'a,M:'a>(key: K) -> Box<Matcher<'a,M> + 'a>
 where &'a M: IntoIterator<Item=(&'a K,&'a V)> + 'a,
       HasKey<K>: Matcher<'a,M> {
@@ -503,6 +669,21 @@ pub struct HasValue<V> {
 ///
 /// The `Matcher` tests for this by converting the map-like data structure
 /// into a key/value pair iterator.
+///
+/// #Examples
+/// ```rust
+/// # #[macro_use] extern crate galvanic_assert;
+/// use galvanic_assert::matchers::collection::*;
+/// # fn main() {
+/// let mut map = std::collections::HashMap::<i32,i32>::new();
+/// map.insert(0, 2);
+/// map.insert(1, 2);
+/// map.insert(2, 5);
+/// map.insert(3, 3);
+/// map.insert(4, 3);
+///
+/// assert_that!(&map, has_value(3));
+/// # }
 pub fn has_value<'a,K:'a,V:'a,M:'a>(key: K) -> Box<Matcher<'a,M> + 'a>
 where &'a M: IntoIterator<Item=(&'a K,&'a V)> + 'a,
       HasKey<K>: Matcher<'a,M> {
