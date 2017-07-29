@@ -120,11 +120,11 @@ fn everything_is_fine {
 Another 2-minutes for learning about expectations
 -------------------------------------------------
 An assertion is immediately check for correctness.
-That means that any later assertion is executed and you might lose valuable information for debugging the error.
+That means that any later assertion is not executed and you might lose valuable information for debugging the error.
 Basically you want as much information as possible to do that.
 Therefore the the macros `expect_that!` and `get_expectation_for!` have been introduced.
 
-Both state an expectation instead of an assertion in exactly the same way as `assert_that!`---so anything you learned from the last sectio still applies.
+Both state an expectation instead of an assertion in exactly the same way as `assert_that!`---so anything you learned from the last section still applies.
 The condition is still checked at the point of specification but the inspection of the result is deferred to a later point in time.
 
 The `expect_that!` macro defers the inspection of the result until the end of the current block:
@@ -133,7 +133,7 @@ The `expect_that!` macro defers the inspection of the result until the end of th
     expect_that!(&1+1, equal_to(0));
     expect_that!(&1+1, less_than(4)); // is executed
 }
-expect_that!(1+1, panics); // is never executed as e1 panics
+expect_that!(1+1, panics); // is never executed as the first expectation panics at the end of the block
 ```
 
 The `get_expectation_for!` macro allows for more fine grained control.
