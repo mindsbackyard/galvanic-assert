@@ -16,6 +16,14 @@
 use super::super::*;
 
 /// Takes a list of matchers for the same type combines them conjunctively.
+///
+/// #Examples
+/// ```rust
+/// # #[macro_use] extern crate galvanic_assert;
+/// use galvanic_assert::matchers::*;
+/// # fn main() {
+/// assert_that!(&(1+1), all_of![gt(0), lt(5), not(eq(3))]);
+/// # }
 #[macro_export]
 macro_rules! all_of {
     ( $matcher: expr ) => {
@@ -29,6 +37,14 @@ macro_rules! all_of {
 /// A `Matcher` struct which joins multiple `Matcher`s conjunctively.
 ///
 /// Use `of()` to create a new `Matcher` and `and()` to add further `Matcher`s.
+///
+/// #Examples
+/// ```rust
+/// # #[macro_use] extern crate galvanic_assert;
+/// use galvanic_assert::matchers::*;
+/// # fn main() {
+/// assert_that!(&(1+1), All::of(gt(0)).and(lt(5)).and(not(eq(3))));
+/// # }
 pub struct All<'a, T:'a> {
     pub matcher: Box<Matcher<'a,T> + 'a>,
     pub next: Option<Box<All<'a,T>>>
@@ -67,6 +83,14 @@ impl<'a,T:'a> Matcher<'a,T> for All<'a,T> {
 }
 
 /// Takes a list of matchers for the same type combines them disjunctively.
+///
+/// #Examples
+/// ```rust
+/// # #[macro_use] extern crate galvanic_assert;
+/// use galvanic_assert::matchers::*;
+/// # fn main() {
+/// assert_that!(&(1+1), any_of![lt(0), gt(5), not(eq(3))]);
+/// # }
 #[macro_export]
 macro_rules! any_of {
     ( $matcher: expr ) => {
@@ -80,6 +104,14 @@ macro_rules! any_of {
 /// A `Matcher` struct which joins multiple `Matcher`s disjunctively.
 ///
 /// Use `of()` to create a new `Matcher` and `or()` to add further `Matcher`s.
+///
+/// #Examples
+/// ```rust
+/// # #[macro_use] extern crate galvanic_assert;
+/// use galvanic_assert::matchers::*;
+/// # fn main() {
+/// assert_that!(&(1+1), Any::of(lt(0)).or(gt(5)).or(not(eq(3))));
+/// # }
 pub struct Any<'a, T:'a> {
     pub matcher: Box<Matcher<'a,T> + 'a>,
     pub next: Option<Box<Any<'a,T>>>
