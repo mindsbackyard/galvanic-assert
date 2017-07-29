@@ -1,12 +1,13 @@
 [package]
 name = "galvanic-assert"
-version = "0.8.3"
+version = "0.8.4"
 authors = ["Christopher Bacher <mindsbackyard@gmail.com>"]
 
 description = """A comprehensive set of matcher-based assertions and expectations for easier testing.
 
-Support for checking properties of numbers, objects, enum variants, collections, panics, and more.
-It is also easy to write your own assertions.
+Supports checking properties of numbers, objects, enum variants, collections, panics, and more.
+Stuctural matching enables you to integrate matchers into struct decompositions for less code repetition.
+It's easy to write your own matchers for assertions too.
 This crate will be part of the galvanic test framework (in development).
 You can also use the assertions in another test framework of your choice.
 Works on: stable, beta, and nightly"""

@@ -58,6 +58,26 @@ fn should_be_the_correct_variant {
 }
 ```
 
+If you need to assert multiple fields a struct or enum you can use a structural matcher ...
+```rust
+enum Baz {
+    Var1 { x: i32, y: f64 },
+    Var2(i32, f64)
+}
+
+#[test]
+fn expression_should_compute_correct_value {
+    let var1 = Baz::Var1 { x: 12, y: 23.4 };
+    assert_that!(&var1, has_structure!(Baz::Var1 {
+        x: eq(12),
+        y: lt(25.0)
+    }));
+
+    let var2 = Baz::Var2(12, 23.4);
+    assert_that!(&var2, has_structure!(Baz::Var2 [eq(12), lt(25.0)] ));
+}
+```
+
 It is also possible to combine multiple matchers to create more expressive ones ...
 ```rust
 #[test]
