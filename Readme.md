@@ -58,13 +58,14 @@ fn should_be_the_correct_variant {
 }
 ```
 
-If you need to assert multiple fields a struct or enum you can use a structural matcher ...
+If you need to assert multiple fields of a struct or enum you can use a structural matcher ...
 ```rust
 enum Baz {
     Var1 { x: i32, y: f64 },
     Var2(i32, f64)
 }
 
+// this currently works only on beta and nightly, should hit stable with rust 1.20
 #[test]
 fn expression_should_compute_correct_value {
     let var1 = Baz::Var1 { x: 12, y: 23.4 };

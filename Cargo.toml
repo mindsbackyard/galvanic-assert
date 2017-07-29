@@ -23,7 +23,10 @@ license = "Apache-2.0"
 keywords = ["test", "assert", "matching", "fluent", "hamcrest"]
 categories = ["development-tools::testing"]
 
-[dependencies]
+build = "build.rs"
+
+[build-dependencies]
+rustc_version = "0.2"
 
 [badges]
 travis-ci = { repository = "mindsbackyard/galvanic-assert" }

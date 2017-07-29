@@ -392,12 +392,14 @@ where T: Debug + 'a {
 /// assert_that!(&var2, has_structure!(Baz::Var2 [eq(12), lt(25.0)] ));
 /// # }
 #[macro_export]
+#[cfg(structural_matchers)]
 macro_rules! has_structure {
     ( $variant:path { $( $field:ident : $matcher:expr ),* $(,)* } ) => { structure!($variant { $($field : $matcher),* }) };
     ( $variant:path [ $( $matchers:expr ),* ] ) => { structure!($variant [ $($matchers),* ]) }
 }
 /// Shorter name for `has_structure!`.
 #[macro_export]
+#[cfg(structural_matchers)]
 macro_rules! structure {
     ( $variant:path { $( $field:ident : $matcher:expr ),* $(,)* } ) => {
         Box::new(|actual: &_| {
