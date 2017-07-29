@@ -267,3 +267,95 @@ mod same_object {
         );
     }
 }
+
+mod has_structure {
+    use super::*;
+
+    mod struct_like {
+        use super::*;
+        struct Foo { x: i32, y: f64 }
+
+        #[test]
+        fn should_match() {
+            let foo = Foo { x: 12, y: 23.4 };
+            assert_that!(&foo, structure!(Foo {
+                x: eq(12),
+                y: lt(25.0)
+            }));
+        }
+
+        #[test]#[should_panic]
+        fn should_fail() {
+            let foo = Foo { x: 12, y: 23.4 };
+            assert_that!(&foo, structure!(Foo {
+                x: eq(13),
+                y: gt(25.0)
+            }));
+        }
+    }
+
+    mod tuple_like {
+        use super::*;
+        struct Bar(i32, f64);
+
+        #[test]
+        fn should_match() {
+            let bar = Bar(12, 23.4);
+            assert_that!(&bar, structure!(Bar [eq(12), lt(25.0)] ));
+        }
+
+        #[test]#[should_panic]
+        fn should_fail() {
+            let bar = Bar(12, 23.4);
+            assert_that!(&bar, structure!(Bar [eq(12), gt(25.0)] ));
+        }
+    }
+
+    mod enum_like {
+        use super::*;
+
+        enum Baz {
+            Var1 { x: i32, y: f64 },
+            Var2(i32, f64)
+        }
+
+        #[test]
+        fn should_match() {
+            let var1 = Baz::Var1 { x: 12, y: 23.4 };
+            assert_that!(&var1, structure!(Baz::Var1 {
+                x: eq(12),
+                y: lt(25.0)
+            }));
+
+            let var2 = Baz::Var2(12, 23.4);
+            assert_that!(&var2, structure!(Baz::Var2 [eq(12), lt(25.0)] ));
+        }
+
+        #[test]
+        fn should_fail() {
+            let var1 = Baz::Var1 { x: 12, y: 23.4 };
+            assert_that!(
+                assert_that!(&var1, structure!(Baz::Var1 {
+                    x: eq(13),
+                    y: gt(25.0)
+                })),
+                panics
+            );
+
+            assert_that!(
+                assert_that!(&var1, structure!(Baz::Var2 [any_value(), any_value()])),
+                panics
+            );
+
+            let var2 = Baz::Var2(12, 23.4);
+            assert_that!(
+                assert_that!(&var2, structure!(Baz::Var2 [eq(13), gt(25.0)] )),
+                panics
+            );
+            assert_that!(
+                assert_that!(&var2, structure!(Baz::Var1 { x: any_value(), y: any_value() } )),
+                panics
+            );
+        }
+    }
+}

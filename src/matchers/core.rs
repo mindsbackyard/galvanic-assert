@@ -35,6 +35,7 @@ macro_rules! matchresult_from_comparison {
 pub fn assertion_always_succeeds<'a,T:'a>() -> Box<Matcher<'a,T> + 'a> {
     Box::new(|_s: &T| MatchResultBuilder::for_("succeeds_always").matched())
 }
+pub fn any_value<'a,T:'a>() -> Box<Matcher<'a,T> + 'a> { assertion_always_succeeds() }
 
 /// A matcher which never matches.
 pub fn assertion_always_fails<'a,T:'a>() -> Box<Matcher<'a,T> + 'a> {
@@ -42,11 +43,20 @@ pub fn assertion_always_fails<'a,T:'a>() -> Box<Matcher<'a,T> + 'a> {
         MatchResultBuilder::for_("fails_always").failed_because("This matcher fails always")
     })
 }
+pub fn no_value<'a,T:'a>() -> Box<Matcher<'a,T> + 'a> { assertion_always_fails() }
 
 /// Accepts a matcher and returns it unmodified.
 ///
 /// This is just syntactic sugar.
 pub fn is<'a, T:'a, M>(matcher: M) -> M
+where M: Matcher<'a,T> {
+    matcher
+}
+
+/// Accepts a matcher and returns it unmodified.
+///
+/// This is just syntactic sugar.
+pub fn has<'a, T:'a, M>(matcher: M) -> M
 where M: Matcher<'a,T> {
     matcher
 }
@@ -71,7 +81,6 @@ pub fn not<'a, T: 'a>(matcher: Box<Matcher<'a,T> + 'a>) -> Box<Matcher<'a,T> + '
 pub fn equal_to<'a, T>(expected: T) -> Box<Matcher<'a,T> + 'a>
 where T: PartialEq + Debug + 'a {
     Box::new(move |actual: &T| matchresult_from_comparison!(actual == expected, "equal"))
-
 }
 /// Matches if the asserted value is equal to the expected value.
 pub fn eq<'a, T: PartialEq + Debug + 'a>(expected: T) -> Box<Matcher<'a,T> + 'a> { equal_to(expected) }
@@ -138,4 +147,73 @@ where T: Debug + 'a {
             builder.failed_comparison(&actual, &expected)
         }
     })
+}
+
+#[macro_export]
+macro_rules! has_structure {
+    ( $variant:path { $( $field:ident : $matcher:expr ),* $(,)* } ) => { structure!($variant { $($field : $matcher),* }) };
+    ( $variant:path [ $( $matchers:expr ),* ] ) => { structure!($variants [ $($matchers),* ]) }
+}
+#[macro_export]
+macro_rules! structure {
+    ( $variant:path { $( $field:ident : $matcher:expr ),* $(,)* } ) => {
+        Box::new(|actual: &_| {
+            use galvanic_assert::{MatchResultBuilder, MatchResult};
+            let builder = MatchResultBuilder::for_("has_structure");
+            #[allow(unreachable_patterns)]
+            match actual {
+                &$variant { $( ref $field, )* ..} => {
+                    let mut failed_msgs = Vec::new();
+                    $(
+                        if let MatchResult::Failed{ name, reason } = $matcher.check($field) {
+                            failed_msgs.push(
+                                format!("Matcher '{}' for field '{}' at {}:{} failed:\n\t{}",
+                                        name, stringify!($field), file!().to_string(), line!(), reason)
+                            );
+                        }
+                    )*
+                    if failed_msgs.is_empty() { builder.matched() }
+                    else { builder.failed_because(&failed_msgs.join("\n")) }
+                },
+                _ => builder.failed_because(
+                        &format!("passed variant does not match '{}'", stringify!($variant))
+                )
+            }
+        })
+    };
+
+    (@expand ( $variant:path ; $field:ident ; $m:expr ; $($wildcard:tt),* ) -> ($($body:tt)*) ) => {
+        structure!(@generate ($field ; $($body)* ($m ; &$variant($($wildcard,)* ref $field))) )
+    };
+    (@expand ( $variant:path ; $field:ident ; $m:expr , $($matchers:expr),* ; $($wildcard:tt),* ) -> ($($body:tt)*) ) => {
+        structure!(@expand ( $variant ; $field ; $($matchers),* ; $($wildcard,)* _ ) -> ($($body)* ($m ; &$variant($($wildcard,)* ref $field, ..)),) )
+    };
+    (@generate ($field:ident ; $(($matcher:expr ; $pattern:pat)),*) ) => {
+        Box::new(|actual: &_| {
+            use galvanic_assert::{MatchResultBuilder, MatchResult};
+            let builder = MatchResultBuilder::for_("has_structure");
+
+            let mut failed_msgs = Vec::new();
+            $(
+                #[allow(unreachable_patterns)]
+                match actual {
+                    $pattern => if let MatchResult::Failed{ name, reason } = $matcher.check($field) {
+                        failed_msgs.push(
+                            format!("Matcher '{}' for field '{}' at {}:{} failed:\n\t{}",
+                                    name, stringify!($field), file!().to_string(), line!(), reason)
+                        );
+                    },
+                    _ => return builder.failed_because(
+                            &format!("passed variant does not match '{}'", stringify!($variant))
+                    )
+                }
+            )*
+
+            if failed_msgs.is_empty() { builder.matched() }
+            else { builder.failed_because(&failed_msgs.join("\n")) }
+        })
+    };
+    ( $variant:path [ $( $matchers:expr ),* ] ) => {
+        structure![ @expand ( $variant ; x ; $($matchers),* ; ) -> () ]
+    };
 }
