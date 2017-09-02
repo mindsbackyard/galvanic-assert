@@ -1,6 +1,6 @@
 [package]
 name = "galvanic-assert"
-version = "0.8.5"
+version = "0.8.6"
 authors = ["Christopher Bacher <mindsbackyard@gmail.com>"]
 
 description = """A comprehensive set of matcher-based assertions and expectations for easier testing.
@@ -22,11 +22,6 @@ license = "Apache-2.0"
 
 keywords = ["test", "assert", "matching", "fluent", "hamcrest"]
 categories = ["development-tools::testing"]
-
-build = "build.rs"
-
-[build-dependencies]
-rustc_version = "0.2"
 
 [badges]
 travis-ci = { repository = "mindsbackyard/galvanic-assert" }

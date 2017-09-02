@@ -65,7 +65,6 @@ enum Baz {
     Var2(i32, f64)
 }
 
-// this currently works only on beta and nightly, should hit stable with rust 1.20
 #[test]
 fn expression_should_compute_correct_value {
     let var1 = Baz::Var1 { x: 12, y: 23.4 };

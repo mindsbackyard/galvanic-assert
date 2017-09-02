@@ -268,8 +268,6 @@ mod same_object {
     }
 }
 
-
-#[cfg(structural_matchers)]
 mod has_structure {
     use super::*;
 
