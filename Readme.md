@@ -9,10 +9,11 @@ This crate provides a new assertion macros (`assert_that!`, `expect_that!`, `get
  * make **reading** asserts comprehendable
  * easily **extend** the assertion framework
  * provide a large list **common matchers**
- * integrate with **galvanic-test** and **galvanic-mock** (both still in development ... stay tuned!)
+ * integrate with **[galvanic-test](https://www.github.com/mindsbackyard/galvanic-test)** and **[galvanic-mock](https://www.github.com/mindsbackyard/galvanic-mock)**
  * be used with your favourite test framework
 
-The crate will be part of **galvanic**---a complete test framework for **Rust**.
+The crate is part of **galvanic**---a complete test framework for **Rust**.
+The framework is shipped in three parts, so you can choose to use only the parts you need.
 
 The 2-minute tutorial
 ---------------------
