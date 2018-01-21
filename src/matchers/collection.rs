@@ -44,10 +44,11 @@ pub struct ContainsInAnyOrder<T> {
 ///     panics
 /// );
 /// # }
-pub fn contains_in_any_order<'a,T:'a,I:'a>(expected_elements: I) -> Box<Matcher<'a,I> + 'a>
+pub fn contains_in_any_order<'a,T:'a,I:'a,J:'a>(expected_elements: I) -> Box<Matcher<'a,J> + 'a>
 where T: PartialEq + Debug,
       I: IntoIterator<Item=T>,
-      ContainsInAnyOrder<T>: Matcher<'a,I> {
+      J: IntoIterator<Item=T>,
+      ContainsInAnyOrder<T>: Matcher<'a,J> {
     Box::new(ContainsInAnyOrder {
         expected_elements: expected_elements.into_iter().collect()
     })
@@ -63,7 +64,7 @@ where T: PartialEq + Debug + 'a,
 
         for ref element in actual.into_iter() {
             let maybe_pos = expected_elements.iter()
-                                             .position(|candidate| element == candidate);;
+                                             .position(|candidate| element == candidate);
             if let Some(idx) = maybe_pos {
                 expected_elements.remove(idx);
             } else {
@@ -105,10 +106,11 @@ pub struct ContainsInOrder<T> {
 ///     panics
 /// );
 /// # }
-pub fn contains_in_order<'a,T:'a,I:'a>(expected_elements: I) -> Box<Matcher<'a,I> + 'a>
+pub fn contains_in_order<'a,T:'a,I:'a,J:'a>(expected_elements: I) -> Box<Matcher<'a,J> + 'a>
 where T: PartialEq + Debug,
       I: IntoIterator<Item=T>,
-      ContainsInOrder<T>: Matcher<'a,I> {
+      J: IntoIterator<Item=T>,
+      ContainsInOrder<T>: Matcher<'a,J> {
     Box::new(ContainsInOrder {
         expected_elements: expected_elements.into_iter().collect()
     })
@@ -161,10 +163,11 @@ pub struct ContainsSubset<T> {
 /// # fn main() {
 /// assert_that!(&vec![1,2,3,4,5,6], contains_subset(vec![3,1,2,4]));
 /// # }
-pub fn contains_subset<'a,T:'a,I:'a>(expected_elements: I) -> Box<Matcher<'a,I> + 'a>
+pub fn contains_subset<'a,T:'a,I:'a,J:'a>(expected_elements: I) -> Box<Matcher<'a,J> + 'a>
 where T: PartialEq + Debug,
       I: IntoIterator<Item=T>,
-      ContainsSubset<T>: Matcher<'a,I> {
+      J: IntoIterator<Item=T>,
+      ContainsSubset<T>: Matcher<'a,J> {
     Box::new(ContainsSubset {
         expected_elements: expected_elements.into_iter().collect()
     })

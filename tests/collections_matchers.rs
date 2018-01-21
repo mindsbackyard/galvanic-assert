@@ -28,7 +28,7 @@ mod contains_in_any_order {
 
     #[test]
     fn should_match_empty_collection() {
-        assert_that!(&Vec::new(), contains_in_any_order::<i32, Vec<i32>>(Vec::new()));
+        assert_that!(&Vec::new(), contains_in_any_order::<i32, Vec<i32>, Vec<i32>>(Vec::new()));
     }
 
     #[test]
@@ -58,7 +58,7 @@ mod contains_in_order {
 
     #[test]
     fn should_match_empty_collection() {
-        assert_that!(&Vec::new(), contains_in_order::<i32, Vec<i32>>(Vec::new()));
+        assert_that!(&Vec::new(), contains_in_order::<i32, Vec<i32>, Vec<i32>>(Vec::new()));
     }
 
     #[test]
@@ -96,12 +96,12 @@ mod contains_subset {
 
     #[test]
     fn should_match_empty_collection() {
-        assert_that!(&Vec::new(), contains_subset::<i32, Vec<i32>>(Vec::new()));
+        assert_that!(&Vec::new(), contains_subset::<i32, Vec<i32>, Vec<i32>>(Vec::new()));
     }
 
     #[test]
     fn should_match_empty_subset() {
-        assert_that!(&vec![1,2,3,4], contains_subset::<i32, Vec<i32>>(Vec::new()));
+        assert_that!(&vec![1,2,3,4], contains_subset::<i32, Vec<i32>, Vec<i32>>(Vec::new()));
     }
 
     #[test]
