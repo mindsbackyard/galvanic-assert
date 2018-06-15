@@ -280,6 +280,7 @@ where F: Fn(&'a T) -> MatchResult + ?Sized {
 }
 
 /// The return type of any `Machter`
+#[derive(Debug)]
 pub enum MatchResult {
     /// Indicates that the `Matcher` matched the value under inspection.
     Matched {
@@ -292,6 +293,34 @@ pub enum MatchResult {
         name: String,
         /// The `reason` why the `Matcher` failed
         reason: String
+    }
+}
+
+impl std::convert::From<bool> for MatchResult {
+    fn from(result: bool) -> MatchResult {
+        if result {
+            MatchResultBuilder::new().matched()
+        } else {
+            MatchResultBuilder::new().failed_because("Boolean expression evaluated to false")
+        }
+    }
+}
+
+impl<T> std::convert::From<Option<T>> for MatchResult {
+    fn from(result: Option<T>) -> MatchResult {
+        match result {
+            Some(..) => MatchResultBuilder::new().matched(),
+            None => MatchResultBuilder::new().failed_because("Option was `None`")
+        }
+    }
+}
+
+impl<T,E:Debug> std::convert::From<Result<T,E>> for MatchResult {
+    fn from(result: Result<T,E>) -> MatchResult {
+        match result {
+            Ok(..) => MatchResultBuilder::new().matched(),
+            Err(err) => MatchResultBuilder::new().failed_because(&format!("{:?}", err))
+        }
     }
 }
 
@@ -429,11 +458,11 @@ impl Display for Expectation {
 pub mod matchers;
 
 #[cfg(test)]
-mod test {
+mod test_matchresult_conversions {
     use super::*;
 
     #[test]
-    fn should_bool() {
+    fn should_convert_to_bool() {
         let matched = MatchResultBuilder::new().matched();
         let failed = MatchResultBuilder::new().failed_because("");
 
@@ -441,5 +470,44 @@ mod test {
         assert!(flag);
         let flag: bool = failed.into();
         assert!(!flag);
+    }
+
+    #[test]
+    fn should_convert_from_bool() {
+        let matched: MatchResult = true.into();
+        let failed: MatchResult = false.into();
+
+        if let MatchResult::Failed {..} = matched {
+            panic!("`true` should convert to into a `Matched` variant, but was {:?}", failed)
+        }
+        if let MatchResult::Matched {..} = failed {
+            panic!("`false` should convert to into a `Failed` variant, but was {:?}", failed)
+        }
+    }
+
+    #[test]
+    fn should_convert_from_option() {
+        let matched: MatchResult = Some(()).into();
+        let failed: MatchResult = (None as Option<()>).into();
+
+        if let MatchResult::Failed {..} = matched {
+            panic!("`Some` should convert to into a `Matched` variant, but was {:?}", matched)
+        }
+        if let MatchResult::Matched {..} = failed {
+            panic!("`None` should convert to into a `Failed` variant, but was {:?}", failed)
+        }
+    }
+
+    #[test]
+    fn should_convert_from_result() {
+        let matched: MatchResult = (Ok(()) as Result<(),()>).into();
+        let failed: MatchResult = (Err(()) as Result<(),()>).into();
+
+        if let MatchResult::Failed {..} = matched {
+            panic!("`Some` should convert to into a `Matched` variant, but was {:?}", matched)
+        }
+        if let MatchResult::Matched {..} = failed {
+            panic!("`None` should convert to into a `Failed` variant, but was {:?}", failed)
+        }
     }
 }
