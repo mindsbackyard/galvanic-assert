@@ -22,8 +22,6 @@ mod get_expectation_for {
     use super::*;
 
     mod use_expression {
-        use super::*;
-
         #[test]
         fn should_get_an_expectation_asserting_an_expression_to_be_true() {
             #[allow(unused_variables)]
@@ -76,8 +74,6 @@ mod get_expectation_for {
     }
 
     mod use_panic {
-        use super::*;
-
         #[test]
         fn should_get_an_expectation_asserting_an_expression_to_panic() {
             #[allow(unused_variables)]
@@ -93,8 +89,6 @@ mod get_expectation_for {
     }
 
     mod use_no_panic {
-        use super::*;
-
         #[test]
         fn should_get_an_expectation_asserting_an_expression_to_not_panic() {
             #[allow(unused_variables)]
@@ -165,8 +159,6 @@ mod expect_that {
     }
 
     mod use_panic {
-        use super::*;
-
         #[test]
         fn should_expect_an_expression_to_panic() {
             expect_that!(panic!("panic"), panics);
@@ -180,8 +172,6 @@ mod expect_that {
     }
 
     mod use_no_panic {
-        use super::*;
-
         #[test]
         fn should_expect_an_expression_to_not_panic() {
             expect_that!(1 == 1, does not panic);

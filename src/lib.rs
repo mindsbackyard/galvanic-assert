@@ -262,7 +262,7 @@ macro_rules! expect_that {
 }
 
 /// The trait which has to be implemented by all matchers.
-pub trait Matcher<T> {
+pub trait Matcher<T: ?Sized> {
     /// Checks the passed value if it satisfies the `Matcher`.
     ///
     /// Values are always taken as immutable reference as the actual value shouldn't be changed by the matcher.
