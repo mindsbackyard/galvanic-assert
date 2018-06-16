@@ -14,10 +14,9 @@
  */
 
 //! The collection module contains matchers for asserting properties of collections and iterators.
-
-use std::fmt::Debug;
 use super::super::*;
-
+use std::cmp::Ordering;
+use std::fmt::Debug;
 use std::iter::FromIterator;
 
 /// Matches if the asserted collection contains *all and only* the expected elements in any order.
@@ -44,20 +43,20 @@ pub struct ContainsInAnyOrder<T> {
 ///     panics
 /// );
 /// # }
-pub fn contains_in_any_order<'a,T:'a,I:'a,J:'a>(expected_elements: I) -> Box<Matcher<'a,J> + 'a>
+pub fn contains_in_any_order<'a,T:'a,I:'a,J:'a>(expected_elements: I) -> Box<Matcher<J> + 'a>
 where T: PartialEq + Debug,
       I: IntoIterator<Item=T>,
       J: IntoIterator<Item=T>,
-      ContainsInAnyOrder<T>: Matcher<'a,J> {
+      ContainsInAnyOrder<T>: Matcher<J> {
     Box::new(ContainsInAnyOrder {
         expected_elements: expected_elements.into_iter().collect()
     })
 }
 
-impl<'a,T,I> Matcher<'a,I> for ContainsInAnyOrder<T>
-where T: PartialEq + Debug + 'a,
-      &'a I: IntoIterator<Item=&'a T> + Debug + 'a {
-    fn check(&self, actual: &'a I) -> MatchResult {
+impl<T,I> Matcher<I> for ContainsInAnyOrder<T>
+where T: PartialEq + Debug,
+      for<'all> &'all I: IntoIterator<Item=&'all T> + Debug {
+    fn check(&self, actual: &I) -> MatchResult {
         let repr = format!("{:?}", actual);
         let builder = MatchResultBuilder::for_("contains_in_any_order");
         let mut expected_elements = Vec::from_iter(self.expected_elements.iter());
@@ -106,20 +105,20 @@ pub struct ContainsInOrder<T> {
 ///     panics
 /// );
 /// # }
-pub fn contains_in_order<'a,T:'a,I:'a,J:'a>(expected_elements: I) -> Box<Matcher<'a,J> + 'a>
+pub fn contains_in_order<'a,T:'a,I:'a,J:'a>(expected_elements: I) -> Box<Matcher<J> + 'a>
 where T: PartialEq + Debug,
       I: IntoIterator<Item=T>,
       J: IntoIterator<Item=T>,
-      ContainsInOrder<T>: Matcher<'a,J> {
+      ContainsInOrder<T>: Matcher<J> {
     Box::new(ContainsInOrder {
         expected_elements: expected_elements.into_iter().collect()
     })
 }
 
-impl<'a, T, I:'a> Matcher<'a,I> for ContainsInOrder<T>
-where T: PartialEq + Debug + 'a,
-      &'a I: IntoIterator<Item=&'a T> + Debug + 'a {
-    fn check(&self, actual: &'a I) -> MatchResult {
+impl<T, I> Matcher<I> for ContainsInOrder<T>
+where T: PartialEq + Debug,
+      for<'all> &'all I: IntoIterator<Item=&'all T> + Debug {
+    fn check(&self, actual: &I) -> MatchResult {
         let builder = MatchResultBuilder::for_("contains_in_order");
         let actual_list: Vec<_> = actual.into_iter().collect();
 
@@ -163,20 +162,20 @@ pub struct ContainsSubset<T> {
 /// # fn main() {
 /// assert_that!(&vec![1,2,3,4,5,6], contains_subset(vec![3,1,2,4]));
 /// # }
-pub fn contains_subset<'a,T:'a,I:'a,J:'a>(expected_elements: I) -> Box<Matcher<'a,J> + 'a>
+pub fn contains_subset<'a,T:'a,I:'a,J:'a>(expected_elements: I) -> Box<Matcher<J> + 'a>
 where T: PartialEq + Debug,
       I: IntoIterator<Item=T>,
       J: IntoIterator<Item=T>,
-      ContainsSubset<T>: Matcher<'a,J> {
+      ContainsSubset<T>: Matcher<J> {
     Box::new(ContainsSubset {
         expected_elements: expected_elements.into_iter().collect()
     })
 }
 
-impl<'a, T, I:'a> Matcher<'a,I> for ContainsSubset<T>
-where T: PartialEq + Debug + 'a,
-      &'a I: IntoIterator<Item=&'a T> + Debug + 'a {
-    fn check(&self, actual: &'a I) -> MatchResult {
+impl<T, I> Matcher<I> for ContainsSubset<T>
+where T: PartialEq + Debug,
+      for<'all >&'all I: IntoIterator<Item=&'all T> + Debug {
+    fn check(&self, actual: &I) -> MatchResult {
         let repr = format!("{:?}", actual);
         let builder = MatchResultBuilder::for_("contains_subset");
         let mut expected_elements = Vec::from_iter(self.expected_elements.iter());
@@ -211,7 +210,7 @@ pub struct ContainedIn<T> {
 /// # fn main() {
 /// assert_that!(&5, contained_in(vec![1,2,3,4,5,6,7,8]));
 /// # }
-pub fn contained_in<'a,T:'a,I>(expected_to_contain: I) -> Box<Matcher<'a,T> + 'a>
+pub fn contained_in<'a,T:'a,I>(expected_to_contain: I) -> Box<Matcher<T> + 'a>
 where T: PartialEq + Debug,
       I: IntoIterator<Item=T> {
     Box::new(ContainedIn {
@@ -219,8 +218,8 @@ where T: PartialEq + Debug,
     })
 }
 
-impl<'a,T> Matcher<'a,T> for ContainedIn<T>
-where T: PartialEq + Debug + 'a  {
+impl<T> Matcher<T> for ContainedIn<T>
+where T: PartialEq + Debug  {
     fn check(&self, element: &T) -> MatchResult {
         let builder = MatchResultBuilder::for_("containd_in");
         if let None = self.expected_to_contain.iter().position(|e| e == element) {
@@ -229,6 +228,48 @@ where T: PartialEq + Debug + 'a  {
             )
         } else { builder.matched() }
     }
+}
+
+
+fn sorted_according_to<'a,T:'a, I, P:'a>(
+    predicate: P,
+    expected_ordering: Option<Ordering>,
+    is_strict: bool,
+) -> Box<Matcher<I> + 'a>
+where
+    T: Ord + Debug,
+    for<'all> &'all I: IntoIterator<Item=&'all T>,
+    for<'all> P: Fn(&'all T, &'all T) -> Ordering
+{
+    Box::new(move |elements: &I| {
+        let builder = MatchResultBuilder::for_("sorted_according_to");
+
+        let window_iter = elements.into_iter().zip({
+            let mut second = elements.into_iter();
+            second.next();
+            second
+        });
+
+        let mut prev_ordering = expected_ordering;
+
+        for (first, second) in window_iter {
+            let ordering = predicate(first, second);
+            if prev_ordering.map(|o| o != ordering && ordering != Ordering::Equal).unwrap_or(false) {
+                return builder.failed_because(
+                    &format!("Ordering of iterable is not monotone: {:?}) not {:?} {:?}", first, prev_ordering, second)
+                );
+            }
+            if is_strict && ordering == Ordering::Equal {
+                return builder.failed_because(
+                    &format!("Ordering of iterable is not strictly monotone: {:?}) == {:?}", first, second)
+                );
+            }
+            if prev_ordering.is_none() && ordering != Ordering::Equal {
+                prev_ordering = Some(ordering)
+            }
+        }
+        builder.matched()
+    })
 }
 
 /// Matches if the elements in the asserted collection are sorted weakly monotone according to the given `predicate` in the expected order.
@@ -245,31 +286,13 @@ where T: PartialEq + Debug + 'a  {
 /// # fn main() {
 /// assert_that!(&vec![1,2,2,3,3,4,5,6], sorted_by(|a: &i32, b: &i32| a.cmp(b), Ordering::Less));
 /// # }
-pub fn sorted_by<'a,T,I,P>(predicate: P, expected_ordering: std::cmp::Ordering) -> Box<Fn(&'a I) -> MatchResult>
-where &'a I: IntoIterator<Item=&'a T> + 'a,
-      T: Ord + Debug + 'a,
-      P: Fn(&'a T,&'a T) -> std::cmp::Ordering + 'static {
-    Box::new(move |elements: &'a I| {
-        let builder = MatchResultBuilder::for_("sorted_by");
-        let mut iter = elements.into_iter();
-        let maybe_prev = iter.next();
-
-        if maybe_prev.is_none() { return builder.matched() }
-        let mut prev = maybe_prev.unwrap();
-
-        for cur in iter {
-            let ordering = predicate(&prev, &cur);
-            if ordering != std::cmp::Ordering::Equal
-                      && expected_ordering != ordering  {
-                return builder.failed_because(
-                    &format!("ordering is not monotone: predicate({:?}, {:?}) != {:?}",
-                             prev, cur, expected_ordering)
-                );
-            }
-            prev = cur;
-        }
-        builder.matched()
-    })
+pub fn sorted_by<'a, T: 'a, I: 'a, P: 'a>(predicate: P, expected_ordering: Ordering) -> Box<Matcher<I> + 'a>
+where
+    T: Ord + Debug,
+    for<'all> &'all I: IntoIterator<Item=&'all T>,
+    for<'all> P: Fn(&'all T, &'all T) -> Ordering
+{
+    rename_matcher("sorted_by".to_owned(), sorted_according_to(predicate, Some(expected_ordering), false))
 }
 
 /// Matches if the elements in the asserted collection are sorted strictly monotone according to the given `predicate` in the expected order`.
@@ -286,29 +309,13 @@ where &'a I: IntoIterator<Item=&'a T> + 'a,
 /// # fn main() {
 /// assert_that!(&vec![1,2,3,4,5,6], sorted_strictly_by(|a: &i32, b: &i32| a.cmp(b), Ordering::Less));
 /// # }
-pub fn sorted_strictly_by<'a,T,I,P>(predicate: P, expected_ordering: std::cmp::Ordering) -> Box<Fn(&'a I) -> MatchResult>
-where &'a I: IntoIterator<Item=&'a T> + 'a,
-      T: Ord + Debug + 'a,
-      P: Fn(&'a T,&'a T) -> std::cmp::Ordering + 'static {
-    Box::new(move |elements: &'a I| {
-        let builder = MatchResultBuilder::for_("sorted_strictly_by");
-        let mut iter = elements.into_iter();
-        let maybe_prev = iter.next();
-
-        if maybe_prev.is_none() { return builder.matched() }
-        let mut prev = maybe_prev.unwrap();
-
-        for cur in iter {
-            let ordering = predicate(&prev, &cur);
-            if expected_ordering != ordering  {
-                return builder.failed_because(
-                    &format!("ordering is not strictly monotone: predicate({:?}, {:?}) != {:?}", prev, cur, expected_ordering)
-                );
-            }
-            prev = cur;
-        }
-        builder.matched()
-    })
+pub fn sorted_strictly_by<'a, T: 'a, I: 'a, P: 'a>(predicate: P, expected_ordering: Ordering) -> Box<Matcher<I> + 'a>
+where
+    T: Ord + Debug,
+    for<'all> &'all I: IntoIterator<Item=&'all T>,
+    for<'all> P: Fn(&'all T, &'all T) -> Ordering
+{
+    rename_matcher("sorted_strictly_by".to_owned(), sorted_according_to(predicate, Some(expected_ordering), true))
 }
 
 /// Matches if the elements in the asserted collection are sorted weakly monotone according to the given `predicate` in any order.
@@ -326,35 +333,13 @@ where &'a I: IntoIterator<Item=&'a T> + 'a,
 /// assert_that!(&vec![5,4,3,3,2,1,1], sorted_by_in_any_order(|a: &i32, b: &i32| a.cmp(b)));
 /// assert_that!(&vec![1,1,2,3,3,4,5], sorted_by_in_any_order(|a: &i32, b: &i32| a.cmp(b)));
 /// # }
-pub fn sorted_by_in_any_order<'a,T,I,P>(predicate: P) -> Box<Fn(&'a I) -> MatchResult>
-where &'a I: IntoIterator<Item=&'a T> + 'a,
-      T: Ord + Debug + 'a,
-      P: Fn(&'a T,&'a T) -> std::cmp::Ordering + 'static {
-    Box::new(move |elements: &'a I| {
-        let builder = MatchResultBuilder::for_("sorted_by_in_any_order");
-        let mut iter = elements.into_iter();
-        let mut expected_ordering: Option<std::cmp::Ordering> = None;
-        let maybe_prev = iter.next();
-        if maybe_prev.is_none() {
-            return MatchResult::Matched { name: "sorted_by_in_any_order".to_owned() };
-        }
-        let mut prev = maybe_prev.unwrap();
-
-        for cur in iter {
-            let ordering = predicate(&prev, &cur);
-            if expected_ordering == None && ordering != std::cmp::Ordering::Equal {
-                expected_ordering = Some(ordering);
-            } else if ordering != std::cmp::Ordering::Equal
-                      && expected_ordering.unwrap() != ordering  {
-                return builder.failed_because(
-                    &format!("ordering is not monotone: predicate({:?}, {:?}) != {:?}",
-                             prev, cur, expected_ordering.unwrap())
-                );
-            }
-            prev = cur;
-        }
-        builder.matched()
-    })
+pub fn sorted_by_in_any_order<'a, T: 'a, I: 'a, P: 'a>(predicate: P) -> Box<Matcher<I> + 'a>
+where
+    T: Ord + Debug,
+    for<'all> &'all I: IntoIterator<Item=&'all T>,
+    for<'all> P: Fn(&'all T, &'all T) -> Ordering
+{
+    rename_matcher("sorted_by_in_any_order".to_owned(), sorted_according_to(predicate, None, false))
 }
 
 /// Matches if the elements in the asserted collection are sorted strictly monotone according to the given `predicate` in any order.
@@ -372,40 +357,13 @@ where &'a I: IntoIterator<Item=&'a T> + 'a,
 /// assert_that!(&vec![5,4,3,2,1], sorted_strictly_by_in_any_order(|a: &i32, b: &i32| a.cmp(b)));
 /// assert_that!(&vec![1,2,3,4,5], sorted_strictly_by_in_any_order(|a: &i32, b: &i32| a.cmp(b)));
 /// # }
-pub fn sorted_strictly_by_in_any_order<'a,T,I,P>(predicate: P) -> Box<Fn(&'a I) -> MatchResult>
-where &'a I: IntoIterator<Item=&'a T> + 'a,
-      T: Ord + Debug + 'a,
-      P: Fn(&'a T,&'a T) -> std::cmp::Ordering + 'static {
-    Box::new(move |elements: &'a I| {
-        let builder = MatchResultBuilder::for_("sorted_strictly_by_in_any_order");
-        let mut iter = elements.into_iter();
-        let mut expected_ordering: Option<std::cmp::Ordering> = None;
-        let maybe_prev = iter.next();
-        if maybe_prev.is_none() {
-            return builder.matched();
-        }
-        let mut prev = maybe_prev.unwrap();
-
-        for cur in iter {
-            let ordering = predicate(&prev, &cur);
-            if ordering == std::cmp::Ordering::Equal {
-                return builder.failed_because(
-                    &format!("ordering is not strictly monotone: predicate({:?}, {:?}) = {:?}",
-                             prev, cur, ordering)
-                );
-            }
-            if expected_ordering == None {
-                expected_ordering = Some(ordering);
-            } else if expected_ordering.unwrap() != ordering  {
-                return builder.failed_because(
-                    &format!("ordering is not strictly monotone: predicate({:?}, {:?}) != {:?}",
-                             prev, cur, expected_ordering.unwrap())
-                );
-            }
-            prev = cur;
-        }
-        builder.matched()
-    })
+pub fn sorted_strictly_by_in_any_order<'a, T: 'a, I: 'a, P: 'a>(predicate: P) -> Box<Matcher<I> + 'a>
+where
+    T: Ord + Debug,
+    for<'all> &'all I: IntoIterator<Item=&'all T>,
+    for<'all> P: Fn(&'all T, &'all T) -> Ordering
+{
+    rename_matcher("sorted_strictly_by_in_any_order".to_owned(), sorted_according_to(predicate, None, true))
 }
 
 /// Matches if the asserted collection is sorted weakly ascending.
@@ -419,10 +377,10 @@ where &'a I: IntoIterator<Item=&'a T> + 'a,
 /// # fn main() {
 /// assert_that!(&vec![1,2,2,3,4,4,5], sorted_ascending());
 /// # }
-pub fn sorted_ascending<'a,T,I>() -> Box<Fn(&'a I) -> MatchResult>
-where &'a I: IntoIterator<Item=&'a T> + 'a,
-      T: Ord + Debug + 'a {
-    sorted_by(|a: &T, b: &T| a.cmp(b), std::cmp::Ordering::Less)
+pub fn sorted_ascending<'a, T: 'a, I: 'a>() -> Box<Matcher<I> + 'a>
+where T: Ord + Debug,
+      for<'all> &'all I: IntoIterator<Item=&'all T> {
+    sorted_by(|a: &T, b: &T| a.cmp(b), Ordering::Less)
 }
 
 /// Matches if the asserted collection is sorted strictly ascending.
@@ -436,10 +394,10 @@ where &'a I: IntoIterator<Item=&'a T> + 'a,
 /// # fn main() {
 /// assert_that!(&vec![1,2,3,4,5], sorted_strictly_ascending());
 /// # }
-pub fn sorted_strictly_ascending<'a,T,I>() -> Box<Fn(&'a I) -> MatchResult>
-where &'a I: IntoIterator<Item=&'a T> + 'a,
-      T: Ord + Debug + 'a {
-    sorted_strictly_by(|a: &T, b: &T| a.cmp(b), std::cmp::Ordering::Less)
+pub fn sorted_strictly_ascending<'a, T: 'a, I: 'a>() -> Box<Matcher<I> + 'a>
+where T: Ord + Debug,
+      for<'all> &'all I: IntoIterator<Item=&'all T> {
+    sorted_strictly_by(|a: &T, b: &T| a.cmp(b), Ordering::Less)
 }
 
 /// Matches if the asserted collection is sorted weakly descending.
@@ -453,10 +411,10 @@ where &'a I: IntoIterator<Item=&'a T> + 'a,
 /// # fn main() {
 /// assert_that!(&vec![5,4,4,3,3,2,1], sorted_descending());
 /// # }
-pub fn sorted_descending<'a,T,I>() -> Box<Fn(&'a I) -> MatchResult>
-where &'a I: IntoIterator<Item=&'a T> + 'a,
-      T: Ord + Debug + 'a {
-    sorted_by(|a: &T, b: &T| a.cmp(b), std::cmp::Ordering::Greater)
+pub fn sorted_descending<'a, T: 'a, I: 'a>() -> Box<Matcher<I> + 'a>
+where T: Ord + Debug,
+      for<'all> &'all I: IntoIterator<Item=&'all T> {
+    sorted_by(|a: &T, b: &T| a.cmp(b), Ordering::Greater)
 }
 
 /// Matches if the asserted collection is sorted strictly descending.
@@ -470,11 +428,12 @@ where &'a I: IntoIterator<Item=&'a T> + 'a,
 /// # fn main() {
 /// assert_that!(&vec![5,4,3,2,1], sorted_strictly_descending());
 /// # }
-pub fn sorted_strictly_descending<'a,T,I>() -> Box<Fn(&'a I) -> MatchResult>
-where &'a I: IntoIterator<Item=&'a T> + 'a,
-      T: Ord + Debug + 'a {
-    sorted_strictly_by(|a: &T, b: &T| a.cmp(b), std::cmp::Ordering::Greater)
+pub fn sorted_strictly_descending<'a, T: 'a, I: 'a>() -> Box<Matcher<I> + 'a>
+where T: Ord + Debug,
+      for<'all> &'all I: IntoIterator<Item=&'all T> {
+    sorted_strictly_by(|a: &T, b: &T| a.cmp(b), Ordering::Greater)
 }
+
 
 /// Matches if all elements in the asserted collection satisfy the given `predicate`.
 ///
@@ -487,11 +446,11 @@ where &'a I: IntoIterator<Item=&'a T> + 'a,
 /// # fn main() {
 /// assert_that!(&vec![1,2,3,4,5], all_elements_satisfy(|&a| 0 <= a && a < 100));
 /// # }
-pub fn all_elements_satisfy<'a,T,I,P>(predicate: P) -> Box<Fn(&'a I) -> MatchResult>
-where T: Debug + 'a,
-      &'a I: IntoIterator<Item=&'a T> + 'a,
-      P: Fn(&'a T) -> bool + 'static {
-    Box::new(move |elements: &'a I| {
+pub fn all_elements_satisfy<'a, T: 'a, I, P: 'a>(predicate: P) -> Box<Matcher<I> + 'a>
+where T: Debug,
+      for<'all> &'all I: IntoIterator<Item=&'all T>,
+      for<'all> P: Fn(&'all T) -> bool {
+    Box::new(move |elements: &I| {
         let builder = MatchResultBuilder::for_("all_elements_satisfy");
         let nonsatisfying_elements: Vec<_> = elements.into_iter().filter(|e| !predicate(e)).collect();
         if !nonsatisfying_elements.is_empty() {
@@ -515,11 +474,13 @@ where T: Debug + 'a,
 /// # fn main() {
 /// assert_that!(&vec![1,2,3,4,5], some_elements_satisfy(|&a| 2 <= a && a < 5));
 /// # }
-pub fn some_elements_satisfy<'a,T,I,P>(predicate: P) -> Box<Fn(&'a I) -> MatchResult>
-where T: Debug + 'a,
-      &'a I: IntoIterator<Item=&'a T> + 'a,
-      P: Fn(&T) -> bool + 'static {
-    Box::new(move |elements: &'a I| {
+pub fn some_elements_satisfy<'a, T: 'a, I, P: 'a>(predicate: P) -> Box<Matcher<I> + 'a>
+where
+    T: Debug,
+    for<'all> &'all I: IntoIterator<Item=&'all T>,
+    for<'all> P: Fn(&'all T) -> bool
+{
+    Box::new(move |elements: &I| {
         let builder = MatchResultBuilder::for_("some_elements_satisfy");
         if !elements.into_iter().any(|ref e| predicate(e)) {
             builder.failed_because("no elements satisfy the predicate")
@@ -563,21 +524,19 @@ pub struct HasEntry<K,V> {
 ///
 /// assert_that!(&map, has_entry(1, 2));
 /// # }
-pub fn has_entry<'a,K:'a,V:'a,M:'a>(key: K, value: V) -> Box<Matcher<'a,M> + 'a>
-where &'a M: IntoIterator<Item=(&'a K,&'a V)> + 'a,
-      HasEntry<K,V>: Matcher<'a,M> {
-    Box::new(HasEntry {
-        key: key,
-        value: value
-    })
+pub fn has_entry<'a,K:'a,V:'a,M:'a>(key: K, value: V) -> Box<Matcher<M> + 'a>
+where K: PartialEq + Debug,
+      V: PartialEq + Debug,
+      for<'all> &'all M: IntoIterator<Item=(&'all K, &'all V)> {
+    Box::new(HasEntry { key, value })
 }
 
-impl<'a,K,V,M> Matcher<'a,M> for HasEntry<K,V>
-where V: PartialEq + Debug + 'a,
-      K: PartialEq + Debug + 'a,
-      &'a M: IntoIterator<Item=(&'a K,&'a V)> + 'a {
+impl<K,V,M> Matcher<M> for HasEntry<K,V>
+where K: PartialEq + Debug,
+      V: PartialEq + Debug,
+      for<'all> &'all M: IntoIterator<Item=(&'all K, &'all V)> {
 
-    fn check(&self, map: &'a M) -> MatchResult {
+    fn check(&self, map: &M) -> MatchResult {
         let builder = MatchResultBuilder::for_("has_entry");
         let mut same_keys = Vec::new();
         let mut same_values = Vec::new();
@@ -634,20 +593,17 @@ pub struct HasKey<K> {
 ///
 /// assert_that!(&map, has_key(2));
 /// # }
-pub fn has_key<'a,K:'a,V:'a,M:'a>(key: K) -> Box<Matcher<'a,M> + 'a>
-where &'a M: IntoIterator<Item=(&'a K,&'a V)> + 'a,
-      HasKey<K>: Matcher<'a,M> {
-    Box::new(HasKey {
-        key: key
-    })
+pub fn has_key<'a, K:'a, V, M>(key: K) -> Box<Matcher<M> + 'a>
+where K: PartialEq + Debug,
+      for<'all> &'all M: IntoIterator<Item=(&'all K, &'all V)> {
+    Box::new(HasKey { key })
 }
 
-impl<'a,K,V,M> Matcher<'a,M> for HasKey<K>
-where V: PartialEq + Debug + 'a,
-      K: PartialEq + Debug + 'a,
-      &'a M: IntoIterator<Item=(&'a K,&'a V)> + 'a {
+impl<K,V,M> Matcher<M> for HasKey<K>
+where K: PartialEq + Debug,
+      for<'all> &'all M: IntoIterator<Item=(&'all K, &'all V)> {
 
-    fn check(&self, map: &'a M) -> MatchResult {
+    fn check(&self, map: &M) -> MatchResult {
         let builder = MatchResultBuilder::for_("has_key");
         for (key, _) in map.into_iter() {
             if key == &self.key {
@@ -687,20 +643,17 @@ pub struct HasValue<V> {
 ///
 /// assert_that!(&map, has_value(3));
 /// # }
-pub fn has_value<'a,K:'a,V:'a,M:'a>(key: K) -> Box<Matcher<'a,M> + 'a>
-where &'a M: IntoIterator<Item=(&'a K,&'a V)> + 'a,
-      HasKey<K>: Matcher<'a,M> {
-    Box::new(HasKey {
-        key: key
-    })
+pub fn has_value<'a, K, V:'a, M>(value: V) -> Box<Matcher<M> + 'a>
+where V: PartialEq + Debug,
+      for<'all> &'all M: IntoIterator<Item=(&'all K, &'all V)> {
+    Box::new(HasValue { value })
 }
 
-impl<'a,K,V,M> Matcher<'a,M> for HasValue<V>
-where V: PartialEq + Debug + 'a,
-      K: PartialEq + Debug + 'a,
-      &'a M: IntoIterator<Item=(&'a K,&'a V)> + 'a {
+impl<K,V,M> Matcher<M> for HasValue<V>
+where V: PartialEq + Debug,
+      for<'all> &'all M: IntoIterator<Item=(&'all K, &'all V)> {
 
-    fn check(&self, map: &'a M) -> MatchResult {
+    fn check(&self, map: &M) -> MatchResult {
         let builder = MatchResultBuilder::for_("has_value");
         for (_, value) in map.into_iter() {
             if value == &self.value {

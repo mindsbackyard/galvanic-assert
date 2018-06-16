@@ -59,13 +59,13 @@ use std::fmt::{Debug, Display, Formatter, Result as FormatResult};
 #[macro_export]
 macro_rules! assert_that {
     ( $actual: expr, panics ) => {{
-        let result = std::panic::catch_unwind(|| { $actual; });
+        let result = ::std::panic::catch_unwind(|| { $actual; });
         if result.is_ok() {
             panic!("\nFailed assertion; expected expression to panic")
         }
     }};
     ( $actual: expr, does not panic ) => {
-        let result = std::panic::catch_unwind(|| { $actual; });
+        let result = ::std::panic::catch_unwind(|| { $actual; });
         if result.is_err() {
             panic!("\nFailed assertion; expression panicked unexpectantly")
         }
@@ -153,7 +153,7 @@ macro_rules! assert_that {
 macro_rules! get_expectation_for {
     ( $actual: expr, panics ) => {{
         use galvanic_assert::Expectation;
-        let result = std::panic::catch_unwind(|| { $actual; });
+        let result = ::std::panic::catch_unwind(|| { $actual; });
         if result.is_ok() {
             let assertion = format!("'{}, panics'", stringify!($actual));
             Expectation::failed(assertion, file!().to_string(), line!(),
@@ -165,7 +165,7 @@ macro_rules! get_expectation_for {
     }};
     ( $actual: expr, does not panic ) => {{
         use galvanic_assert::Expectation;
-        let result = std::panic::catch_unwind(|| { $actual; });
+        let result = ::std::panic::catch_unwind(|| { $actual; });
         if result.is_err() {
             let assertion = format!("'{}, does not panic'", stringify!($actual));
             Expectation::failed(assertion, file!().to_string(), line!(),
@@ -262,19 +262,19 @@ macro_rules! expect_that {
 }
 
 /// The trait which has to be implemented by all matchers.
-pub trait Matcher<'a, T:'a> {
+pub trait Matcher<T> {
     /// Checks the passed value if it satisfies the `Matcher`.
     ///
     /// Values are always taken as immutable reference as the actual value shouldn't be changed by the matcher.
-    fn check(&self, actual: &'a T) -> MatchResult;
+    fn check(&self, actual: &T) -> MatchResult;
 }
 
 /// A closure can be used as a `Matcher`.
 ///
 /// The closure must be repeatably callable in case that the matcher is combined with another matcher.
-impl<'a, T:'a, F> Matcher<'a,T> for F
-where F: Fn(&'a T) -> MatchResult + ?Sized {
-    fn check(&self, actual: &'a T) -> MatchResult {
+impl<T, F> Matcher<T> for F
+where F: Fn(&T) -> MatchResult {
+    fn check(&self, actual: &T) -> MatchResult {
         self(actual)
     }
 }
@@ -340,6 +340,17 @@ impl<'a> std::convert::From<&'a MatchResult> for bool {
             &MatchResult::Failed {..} => false
         }
     }
+}
+
+/// Creates a `Matcher` with a new name from a given `Matcher`.
+///
+/// The returned `Matcher` executes the passed one and
+/// replaces the `name` of the returned `MatchResult` with the given `name`.
+pub fn rename_matcher<'a, T: 'a, M: 'a + Matcher<T> + ?Sized>(name: String, matcher: Box<M>) -> Box<Matcher<T> + 'a> {
+    Box::new(move |actual: &T| match matcher.check(actual) {
+        MatchResult::Failed { reason, .. } => MatchResult::Failed { name: name.clone(), reason },
+        r@_ => r
+    })
 }
 
 /// A builder for creating `MatchResult`s.

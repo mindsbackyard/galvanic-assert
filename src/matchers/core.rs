@@ -40,7 +40,7 @@ macro_rules! matchresult_from_comparison {
 /// # fn main() {
 /// assert_that!(&(1+1), assertion_always_succeeds());
 /// # }
-pub fn assertion_always_succeeds<'a,T:'a>() -> Box<Matcher<'a,T> + 'a> {
+pub fn assertion_always_succeeds<'a,T:'a>() -> Box<Matcher<T> + 'a> {
     Box::new(|_s: &T| MatchResultBuilder::for_("succeeds_always").matched())
 }
 /// A matcher which always matches.
@@ -52,7 +52,7 @@ pub fn assertion_always_succeeds<'a,T:'a>() -> Box<Matcher<'a,T> + 'a> {
 /// # fn main() {
 /// assert_that!(&(1+1), any_value());
 /// # }
-pub fn any_value<'a,T:'a>() -> Box<Matcher<'a,T> + 'a> {
+pub fn any_value<'a,T:'a>() -> Box<Matcher<T> + 'a> {
     Box::new(|_s: &T| MatchResultBuilder::for_("any_value").matched())
 }
 
@@ -68,7 +68,7 @@ pub fn any_value<'a,T:'a>() -> Box<Matcher<'a,T> + 'a> {
 ///     panics
 /// );
 /// # }
-pub fn assertion_always_fails<'a,T:'a>() -> Box<Matcher<'a,T> + 'a> {
+pub fn assertion_always_fails<'a,T:'a>() -> Box<Matcher<T> + 'a> {
     Box::new(|_s: &T| {
         MatchResultBuilder::for_("fails_always").failed_because("This matcher fails always")
     })
@@ -85,7 +85,7 @@ pub fn assertion_always_fails<'a,T:'a>() -> Box<Matcher<'a,T> + 'a> {
 ///     panics
 /// );
 /// # }
-pub fn no_value<'a,T:'a>() -> Box<Matcher<'a,T> + 'a> { assertion_always_fails() }
+pub fn no_value<'a,T:'a>() -> Box<Matcher<T> + 'a> { assertion_always_fails() }
 
 /// Accepts a matcher and returns it unmodified.
 ///
@@ -98,7 +98,7 @@ pub fn no_value<'a,T:'a>() -> Box<Matcher<'a,T> + 'a> { assertion_always_fails()
 /// # fn main() {
 /// assert_that!(&(1+1), is(eq(2)));
 /// # }
-pub fn is<'a, T:'a>(matcher: Box<Matcher<'a,T> + 'a>) -> Box<Matcher<'a,T> + 'a> {
+pub fn is<'a, T:'a>(matcher: Box<Matcher<T> + 'a>) -> Box<Matcher<T> + 'a> {
     matcher
 }
 
@@ -114,7 +114,7 @@ pub fn is<'a, T:'a>(matcher: Box<Matcher<'a,T> + 'a>) -> Box<Matcher<'a,T> + 'a>
 /// let vs = vec![1, 2];
 /// assert_that!(&vs.len(), has(lt(3)));
 /// # }
-pub fn has<'a, T:'a>(matcher: Box<Matcher<'a,T> + 'a>) -> Box<Matcher<'a,T> + 'a> {
+pub fn has<'a, T:'a>(matcher: Box<Matcher<T> + 'a>) -> Box<Matcher<T> + 'a> {
     matcher
 }
 
@@ -127,8 +127,8 @@ pub fn has<'a, T:'a>(matcher: Box<Matcher<'a,T> + 'a>) -> Box<Matcher<'a,T> + 'a
 /// # fn main() {
 /// assert_that!(&(1+1), not(eq(3)));
 /// # }
-pub fn not<'a, T: 'a>(matcher: Box<Matcher<'a,T> + 'a>) -> Box<Matcher<'a,T> + 'a> {
-    Box::new(move |actual: &'a T| {
+pub fn not<'a, T: 'a>(matcher: Box<Matcher<T> + 'a>) -> Box<Matcher<T> + 'a> {
+    Box::new(move |actual: &T| {
         match matcher.check(actual) {
             MatchResult::Matched { name } =>
                 MatchResultBuilder::for_(&format!("not({})", name))
@@ -151,7 +151,7 @@ pub fn not<'a, T: 'a>(matcher: Box<Matcher<'a,T> + 'a>) -> Box<Matcher<'a,T> + '
 /// # fn main() {
 /// assert_that!(&(1+1), equal_to(2));
 /// # }
-pub fn equal_to<'a, T>(expected: T) -> Box<Matcher<'a,T> + 'a>
+pub fn equal_to<'a, T>(expected: T) -> Box<Matcher<T> + 'a>
 where T: PartialEq + Debug + 'a {
     Box::new(move |actual: &T| matchresult_from_comparison!(actual == expected, "equal"))
 }
@@ -167,7 +167,7 @@ where T: PartialEq + Debug + 'a {
 /// # fn main() {
 /// assert_that!(&(1+1), eq(2));
 /// # }
-pub fn eq<'a, T: PartialEq + Debug + 'a>(expected: T) -> Box<Matcher<'a,T> + 'a> { equal_to(expected) }
+pub fn eq<'a, T: PartialEq + Debug + 'a>(expected: T) -> Box<Matcher<T> + 'a> { equal_to(expected) }
 
 /// Matches if the asserted value is less than the expected value.
 ///
@@ -180,7 +180,7 @@ pub fn eq<'a, T: PartialEq + Debug + 'a>(expected: T) -> Box<Matcher<'a,T> + 'a>
 /// # fn main() {
 /// assert_that!(&(1+1), less_than(3));
 /// # }
-pub fn less_than<'a, T>(expected: T) -> Box<Matcher<'a,T> + 'a>
+pub fn less_than<'a, T>(expected: T) -> Box<Matcher<T> + 'a>
 where T: PartialOrd + Debug + 'a {
     Box::new(move |actual: &T| matchresult_from_comparison!(actual < expected, "less_than"))
 }
@@ -195,7 +195,7 @@ where T: PartialOrd + Debug + 'a {
 /// # fn main() {
 /// assert_that!(&(1+1), less_than(3));
 /// # }
-pub fn lt<'a, T: PartialOrd + Debug + 'a>(expected: T) -> Box<Matcher<'a,T> + 'a> { less_than(expected) }
+pub fn lt<'a, T: PartialOrd + Debug + 'a>(expected: T) -> Box<Matcher<T> + 'a> { less_than(expected) }
 
 /// Matches if the asserted value is greater than the expected value.
 ///
@@ -208,7 +208,7 @@ pub fn lt<'a, T: PartialOrd + Debug + 'a>(expected: T) -> Box<Matcher<'a,T> + 'a
 /// # fn main() {
 /// assert_that!(&(1+1), greater_than(1));
 /// # }
-pub fn greater_than<'a, T>(expected: T) -> Box<Matcher<'a,T> + 'a>
+pub fn greater_than<'a, T>(expected: T) -> Box<Matcher<T> + 'a>
 where T: PartialOrd + Debug + 'a {
     Box::new(move |actual: &T| matchresult_from_comparison!(actual > expected, "greater_than"))
 }
@@ -223,7 +223,7 @@ where T: PartialOrd + Debug + 'a {
 /// # fn main() {
 /// assert_that!(&(1+1), gt(1));
 /// # }
-pub fn gt<'a, T: PartialOrd + Debug + 'a>(expected: T) -> Box<Matcher<'a,T> + 'a> { greater_than(expected) }
+pub fn gt<'a, T: PartialOrd + Debug + 'a>(expected: T) -> Box<Matcher<T> + 'a> { greater_than(expected) }
 
 /// Matches if the asserted value is less than or equal to the expected value.
 ///
@@ -237,7 +237,7 @@ pub fn gt<'a, T: PartialOrd + Debug + 'a>(expected: T) -> Box<Matcher<'a,T> + 'a
 /// assert_that!(&(1+1), less_than_or_equal(3));
 /// assert_that!(&(1+1), less_than_or_equal(2));
 /// # }
-pub fn less_than_or_equal<'a, T>(expected: T) -> Box<Matcher<'a,T> + 'a>
+pub fn less_than_or_equal<'a, T>(expected: T) -> Box<Matcher<T> + 'a>
 where T: PartialOrd + Debug + 'a {
     Box::new(move |actual: &T| matchresult_from_comparison!(actual <= expected, "less_than_or_equal"))
 }
@@ -253,7 +253,7 @@ where T: PartialOrd + Debug + 'a {
 /// assert_that!(&(1+1), leq(3));
 /// assert_that!(&(1+1), leq(2));
 /// # }
-pub fn leq<'a, T: PartialOrd + Debug + 'a>(expected: T) -> Box<Matcher<'a,T> + 'a> { less_than_or_equal(expected) }
+pub fn leq<'a, T: PartialOrd + Debug + 'a>(expected: T) -> Box<Matcher<T> + 'a> { less_than_or_equal(expected) }
 
 /// Matches if the asserted value is greater than or equal to the expected value.
 ///
@@ -267,7 +267,7 @@ pub fn leq<'a, T: PartialOrd + Debug + 'a>(expected: T) -> Box<Matcher<'a,T> + '
 /// assert_that!(&(1+1), greater_than_or_equal(1));
 /// assert_that!(&(1+1), greater_than_or_equal(2));
 /// # }
-pub fn greater_than_or_equal<'a, T>(expected: T) -> Box<Matcher<'a,T> + 'a>
+pub fn greater_than_or_equal<'a, T>(expected: T) -> Box<Matcher<T> + 'a>
 where T: PartialOrd + Debug + 'a {
     Box::new(move |actual: &T| matchresult_from_comparison!(actual >= expected, "greater_than_or_equal"))
 }
@@ -283,7 +283,7 @@ where T: PartialOrd + Debug + 'a {
 /// assert_that!(&(1+1), geq(1));
 /// assert_that!(&(1+1), geq(2));
 /// # }
-pub fn geq<'a, T: PartialOrd + Debug + 'a>(expected: T) -> Box<Matcher<'a,T> + 'a> { greater_than_or_equal(expected) }
+pub fn geq<'a, T: PartialOrd + Debug + 'a>(expected: T) -> Box<Matcher<T> + 'a> { greater_than_or_equal(expected) }
 
 /// Matches if the asserted value is in an epsilon range around the expected value.
 ///
@@ -296,7 +296,7 @@ pub fn geq<'a, T: PartialOrd + Debug + 'a>(expected: T) -> Box<Matcher<'a,T> + '
 /// # fn main() {
 /// assert_that!(&(1.2 + 3.14), close_to(4.34, 0.00001));
 /// # }
-pub fn close_to<'a, T>(expected: T, eps: T) -> Box<Matcher<'a,T> + 'a>
+pub fn close_to<'a, T>(expected: T, eps: T) -> Box<Matcher<T> + 'a>
 where T: Copy + PartialOrd + std::ops::Add<Output=T> + std::ops::Sub<Output=T> + Debug + 'a {
     Box::new(move |actual: &T| {
         let builder = MatchResultBuilder::for_("close_to");
@@ -331,7 +331,7 @@ where T: Copy + PartialOrd + std::ops::Add<Output=T> + std::ops::Sub<Output=T> +
 ///     panics
 /// );
 /// # }
-pub fn same_object<'a, T>(expected: &'a T) -> Box<Matcher<'a,T> + 'a>
+pub fn same_object<'a, T>(expected: &'a T) -> Box<Matcher<T> + 'a>
 where T: Debug + 'a {
     Box::new(move |actual: &T| {
         let builder = MatchResultBuilder::for_("same_object");

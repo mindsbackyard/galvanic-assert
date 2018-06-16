@@ -64,8 +64,8 @@ macro_rules! is_variant {
 /// # fn main() {
 /// assert_that!(&Some(32), maybe_some(eq(32)));
 /// # }
-pub fn maybe_some<'a, T: 'a>(matcher: Box<Matcher<'a,T> + 'a>) -> Box<Matcher<'a,Option<T>> + 'a> {
-    Box::new(move |maybe_actual: &'a Option<T>| {
+pub fn maybe_some<'a, T:'a>(matcher: Box<Matcher<T> + 'a>) -> Box<Matcher<Option<T>> + 'a> {
+    Box::new(move |maybe_actual: &Option<T>| {
         maybe_actual.as_ref()
                     .map_or(MatchResultBuilder::for_("maybe_some")
                                                .failed_because("passed Option is None; cannot evaluate nested matcher"),
@@ -85,8 +85,8 @@ pub fn maybe_some<'a, T: 'a>(matcher: Box<Matcher<'a,T> + 'a>) -> Box<Matcher<'a
 /// let ok: Result<i32,()> = Ok(32);
 /// assert_that!(&ok, maybe_ok(eq(32)));
 /// # }
-pub fn maybe_ok<'a, T: 'a, E: 'a>(matcher: Box<Matcher<'a,T> + 'a>) -> Box<Matcher<'a,Result<T,E>> + 'a> {
-    Box::new(move |maybe_actual: &'a Result<T,E>| {
+pub fn maybe_ok<'a, T:'a, E:'a>(matcher: Box<Matcher<T> + 'a>) -> Box<Matcher<Result<T,E>> + 'a> {
+    Box::new(move |maybe_actual: &Result<T,E>| {
         match maybe_actual.as_ref() {
             Ok(actual) => matcher.check(actual),
             Err(_) => MatchResultBuilder::for_("maybe_ok")
@@ -106,8 +106,8 @@ pub fn maybe_ok<'a, T: 'a, E: 'a>(matcher: Box<Matcher<'a,T> + 'a>) -> Box<Match
 /// let err: Result<i32,i32> = Err(32);
 /// assert_that!(&err, maybe_err(eq(32)));
 /// # }
-pub fn maybe_err<'a, T: 'a, E: 'a>(matcher: Box<Matcher<'a,E> + 'a>) -> Box<Matcher<'a,Result<T,E>> + 'a> {
-    Box::new(move |maybe_actual: &'a Result<T,E>| {
+pub fn maybe_err<'a, T:'a, E:'a>(matcher: Box<Matcher<E> + 'a>) -> Box<Matcher<Result<T,E>> + 'a> {
+    Box::new(move |maybe_actual: &Result<T,E>| {
         match maybe_actual.as_ref() {
             Err(actual) => matcher.check(actual),
             Ok(_) => MatchResultBuilder::for_("maybe_err")

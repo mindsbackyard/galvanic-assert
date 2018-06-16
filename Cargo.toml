@@ -1,6 +1,6 @@
 [package]
 name = "galvanic-assert"
-version = "0.8.7"
+version = "0.9.0"
 authors = ["Christopher Bacher <mindsbackyard@gmail.com>"]
 
 description = """A comprehensive set of matcher-based assertions and expectations for easier testing.

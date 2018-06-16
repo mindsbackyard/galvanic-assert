@@ -19,7 +19,7 @@ extern crate galvanic_assert;
 use galvanic_assert::matchers::collection::*;
 
 mod contains_in_any_order {
-    use super::{std, contains_in_any_order};
+    use super::contains_in_any_order;
 
     #[test]
     fn should_match() {
@@ -49,7 +49,7 @@ mod contains_in_any_order {
 }
 
 mod contains_in_order {
-    use super::{std, contains_in_order};
+    use super::contains_in_order;
 
     #[test]
     fn should_match() {
@@ -87,7 +87,7 @@ mod contains_in_order {
 }
 
 mod contains_subset {
-    use super::{std, contains_subset};
+    use super::contains_subset;
 
     #[test]
     fn should_match() {
@@ -114,7 +114,7 @@ mod contains_subset {
 }
 
 mod contained_in {
-    use super::{std, contained_in};
+    use super::contained_in;
 
     #[test]
     fn should_match() {
@@ -131,42 +131,43 @@ mod contained_in {
 }
 
 mod sorted_by {
-    use super::{std, sorted_by};
+    use super::sorted_by;
+    use std::cmp::Ordering;
 
     #[test]
     fn should_match_single_element() {
-        assert_that!(&vec![1], sorted_by(|a: &i32, b: &i32| a.cmp(b), std::cmp::Ordering::Less));
+        assert_that!(&vec![1], sorted_by(|a: &i32, b: &i32| a.cmp(b), Ordering::Less));
     }
 
     #[test]
     fn should_match_empty_collection() {
-        assert_that!(&Vec::new(), sorted_by(|a: &i32, b: &i32| a.cmp(b), std::cmp::Ordering::Less));
+        assert_that!(&Vec::new(), sorted_by(|a: &i32, b: &i32| a.cmp(b), Ordering::Less));
     }
 
     #[test]
     fn should_match() {
-        assert_that!(&vec![1,2,3,4], sorted_by(|a: &i32, b: &i32| a.cmp(b), std::cmp::Ordering::Less));
+        assert_that!(&vec![1,2,3,4], sorted_by(|a: &i32, b: &i32| a.cmp(b), Ordering::Less));
     }
 
     #[test]
     fn should_match_all_eq() {
-        assert_that!(&vec![1,1,1,1], sorted_by(|a: &i32, b: &i32| a.cmp(b), std::cmp::Ordering::Less));
+        assert_that!(&vec![1,1,1,1], sorted_by(|a: &i32, b: &i32| a.cmp(b), Ordering::Less));
     }
 
     #[test]
     fn should_match_some_eq() {
-        assert_that!(&vec![1,2,2,3], sorted_by(|a: &i32, b: &i32| a.cmp(b), std::cmp::Ordering::Less));
+        assert_that!(&vec![1,2,2,3], sorted_by(|a: &i32, b: &i32| a.cmp(b), Ordering::Less));
     }
 
     #[test]
     fn should_match_eq_then_ordered() {
-        assert_that!(&vec![1,1,2,3], sorted_by(|a: &i32, b: &i32| a.cmp(b), std::cmp::Ordering::Less));
+        assert_that!(&vec![1,1,2,3], sorted_by(|a: &i32, b: &i32| a.cmp(b), Ordering::Less));
     }
 
     #[test]
     fn should_fail_unordered() {
         assert_that!(
-            assert_that!(&vec![1,2,5,4], sorted_by(|a: &i32, b: &i32| b.cmp(a), std::cmp::Ordering::Less)),
+            assert_that!(&vec![1,2,5,4], sorted_by(|a: &i32, b: &i32| b.cmp(a), Ordering::Less)),
             panics
         );
     }
@@ -174,34 +175,35 @@ mod sorted_by {
     #[test]
     fn should_fail_some_eq_then_unordered() {
         assert_that!(
-            assert_that!(&vec![1,2,2,1], sorted_by(|a: &i32, b: &i32| b.cmp(a), std::cmp::Ordering::Less)),
+            assert_that!(&vec![1,2,2,1], sorted_by(|a: &i32, b: &i32| b.cmp(a), Ordering::Less)),
             panics
         );
     }
 }
 
 mod sorted_strictly_by {
-    use super::{std, sorted_strictly_by};
+    use super::sorted_strictly_by;
+    use std::cmp::Ordering;
 
     #[test]
     fn should_match_single_element() {
-        assert_that!(&vec![1], sorted_strictly_by(|a: &i32, b: &i32| a.cmp(b), std::cmp::Ordering::Less));
+        assert_that!(&vec![1], sorted_strictly_by(|a: &i32, b: &i32| a.cmp(b), Ordering::Less));
     }
 
     #[test]
     fn should_match_empty_collection() {
-        assert_that!(&Vec::new(), sorted_strictly_by(|a: &i32, b: &i32| a.cmp(b), std::cmp::Ordering::Less));
+        assert_that!(&Vec::new(), sorted_strictly_by(|a: &i32, b: &i32| a.cmp(b), Ordering::Less));
     }
 
     #[test]
     fn should_match() {
-        assert_that!(&vec![1,2,3,4], sorted_strictly_by(|a: &i32, b: &i32| a.cmp(b), std::cmp::Ordering::Less));
+        assert_that!(&vec![1,2,3,4], sorted_strictly_by(|a: &i32, b: &i32| a.cmp(b), Ordering::Less));
     }
 
     #[test]
     fn should_fail_all_eq() {
         assert_that!(
-            assert_that!(&vec![1,1,1,1], sorted_strictly_by(|a: &i32, b: &i32| a.cmp(b), std::cmp::Ordering::Less)),
+            assert_that!(&vec![1,1,1,1], sorted_strictly_by(|a: &i32, b: &i32| a.cmp(b), Ordering::Less)),
             panics
         );
     }
@@ -209,7 +211,7 @@ mod sorted_strictly_by {
     #[test]
     fn should_fail_not_strict() {
         assert_that!(
-            assert_that!(&vec![1,2,2,3], sorted_strictly_by(|a: &i32, b: &i32| a.cmp(b), std::cmp::Ordering::Less)),
+            assert_that!(&vec![1,2,2,3], sorted_strictly_by(|a: &i32, b: &i32| a.cmp(b), Ordering::Less)),
             panics
         );
     }
@@ -217,14 +219,14 @@ mod sorted_strictly_by {
     #[test]
     fn should_fail_unordered() {
         assert_that!(
-            assert_that!(&vec![1,2,5,4], sorted_strictly_by(|a: &i32, b: &i32| b.cmp(a), std::cmp::Ordering::Less)),
+            assert_that!(&vec![1,2,5,4], sorted_strictly_by(|a: &i32, b: &i32| b.cmp(a), Ordering::Less)),
             panics
         );
     }
 }
 
 mod sorted_by_in_any_order {
-    use super::{std, sorted_by_in_any_order};
+    use super::sorted_by_in_any_order;
 
     #[test]
     fn should_match_single_element() {
@@ -274,7 +276,7 @@ mod sorted_by_in_any_order {
 }
 
 mod sorted_strictly_by_in_any_order {
-    use super::{std, sorted_strictly_by_in_any_order};
+    use super::sorted_strictly_by_in_any_order;
 
     #[test]
     fn should_match_single_element() {
@@ -322,7 +324,7 @@ mod sorted_strictly_by_in_any_order {
 }
 
 mod sorted_ascending {
-    use super::{std, sorted_ascending};
+    use super::sorted_ascending;
 
     #[test]
     fn should_match() {
@@ -353,7 +355,7 @@ mod sorted_ascending {
 }
 
 mod sorted_strictly_ascending {
-    use super::{std, sorted_strictly_ascending};
+    use super::sorted_strictly_ascending;
 
     #[test]
     fn should_match() {
@@ -391,7 +393,7 @@ mod sorted_strictly_ascending {
 }
 
 mod sorted_descending {
-    use super::{std, sorted_descending};
+    use super::sorted_descending;
 
     #[test]
     fn should_match() {
@@ -421,7 +423,7 @@ mod sorted_descending {
 }
 
 mod sorted_strictly_descending {
-    use super::{std, sorted_strictly_descending};
+    use super::sorted_strictly_descending;
 
     #[test]
     fn should_match() {
@@ -459,7 +461,7 @@ mod sorted_strictly_descending {
 }
 
 mod all_elements_satisfy {
-    use super::{std, all_elements_satisfy};
+    use super::all_elements_satisfy;
 
     #[test]
     fn should_match() {
@@ -481,7 +483,7 @@ mod all_elements_satisfy {
 }
 
 mod some_elements_satisfy {
-    use super::{std, some_elements_satisfy};
+    use super::some_elements_satisfy;
 
     #[test]
     fn should_match() {
@@ -506,14 +508,13 @@ mod some_elements_satisfy {
 }
 
 mod has_entry {
-    use super::{std, has_entry};
-
     mod ordered_map {
-        use super::{std, has_entry};
+        use std::collections::BTreeMap;
+        use super::super::has_entry;
 
         #[test]
         fn should_match() {
-            let mut map = std::collections::BTreeMap::<i32,i32>::new();
+            let mut map = BTreeMap::<i32,i32>::new();
             map.insert(1, 2);
 
             assert_that!(&map, has_entry(1, 2));
@@ -521,7 +522,7 @@ mod has_entry {
 
         #[test]
         fn should_fail_due_to_missing_key() {
-            let map = std::collections::BTreeMap::<i32,i32>::new();
+            let map = BTreeMap::<i32,i32>::new();
 
             assert_that!(
                 assert_that!(&map, has_entry(1, 2)),
@@ -531,7 +532,7 @@ mod has_entry {
 
         #[test]
         fn should_fail_due_to_wrong_entry() {
-            let mut map = std::collections::BTreeMap::<i32,i32>::new();
+            let mut map = BTreeMap::<i32,i32>::new();
             map.insert(1, 1);
 
             assert_that!(
@@ -542,11 +543,12 @@ mod has_entry {
     }
 
     mod hash_map {
-        use super::{std, has_entry};
+        use std::collections::HashMap;
+        use super::super::has_entry;
 
         #[test]
         fn should_match() {
-            let mut map = std::collections::HashMap::<i32,i32>::new();
+            let mut map = HashMap::<i32,i32>::new();
             map.insert(1, 2);
 
             assert_that!(&map, has_entry(1, 2));
@@ -554,7 +556,7 @@ mod has_entry {
 
         #[test]
         fn should_fail_due_to_missing_key() {
-            let map = std::collections::HashMap::<i32,i32>::new();
+            let map = HashMap::<i32,i32>::new();
 
             assert_that!(
                 assert_that!(&map, has_entry(1, 2)),
@@ -564,7 +566,7 @@ mod has_entry {
 
         #[test]
         fn should_fail_due_to_wrong_entry() {
-            let mut map = std::collections::HashMap::<i32,i32>::new();
+            let mut map = HashMap::<i32,i32>::new();
             map.insert(1, 1);
 
             assert_that!(
@@ -576,14 +578,13 @@ mod has_entry {
 }
 
 mod has_key {
-    use super::{std, has_key};
-
     mod ordered_map {
-        use super::{std, has_key};
+        use std::collections::BTreeMap;
+        use super::super::has_key;
 
         #[test]
         fn should_match() {
-            let mut map = std::collections::BTreeMap::<i32,i32>::new();
+            let mut map = BTreeMap::<i32,i32>::new();
             map.insert(1, 2);
 
             assert_that!(&map, has_key(1));
@@ -591,7 +592,7 @@ mod has_key {
 
         #[test]
         fn should_fail_due_to_missing_key() {
-            let mut map = std::collections::BTreeMap::<i32,i32>::new();
+            let mut map = BTreeMap::<i32,i32>::new();
             map.insert(1, 2);
 
             assert_that!(
@@ -602,11 +603,12 @@ mod has_key {
     }
 
     mod hash_map {
-        use super::{std, has_key};
+        use std::collections::HashMap;
+        use super::super::has_key;
 
         #[test]
         fn should_match() {
-            let mut map = std::collections::HashMap::<i32,i32>::new();
+            let mut map = HashMap::<i32,i32>::new();
             map.insert(1, 2);
 
             assert_that!(&map, has_key(1));
@@ -614,11 +616,61 @@ mod has_key {
 
         #[test]
         fn should_fail_due_to_missing_key() {
-            let mut map = std::collections::HashMap::<i32,i32>::new();
+            let mut map = HashMap::<i32,i32>::new();
             map.insert(1, 2);
 
             assert_that!(
                 assert_that!(&map, has_key(2)),
+                panics
+            );
+        }
+    }
+}
+
+mod has_value {
+    mod ordered_map {
+        use std::collections::BTreeMap;
+        use super::super::has_value;
+
+        #[test]
+        fn should_match() {
+            let mut map = BTreeMap::<i32, i32>::new();
+            map.insert(1, 2);
+
+            assert_that!(&map, has_value(2));
+        }
+
+        #[test]
+        fn should_fail_due_to_missing_key() {
+            let mut map = BTreeMap::<i32, i32>::new();
+            map.insert(1, 2);
+
+            assert_that!(
+                assert_that!(&map, has_value(1)),
+                panics
+            );
+        }
+    }
+
+    mod hash_map {
+        use std::collections::HashMap;
+        use super::super::has_value;
+
+        #[test]
+        fn should_match() {
+            let mut map = HashMap::<i32, i32>::new();
+            map.insert(1, 2);
+
+            assert_that!(&map, has_value(2));
+        }
+
+        #[test]
+        fn should_fail_due_to_missing_key() {
+            let mut map = HashMap::<i32, i32>::new();
+            map.insert(1, 2);
+
+            assert_that!(
+                assert_that!(&map, has_value(1)),
                 panics
             );
         }

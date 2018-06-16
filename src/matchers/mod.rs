@@ -13,10 +13,12 @@
  * limitations under the License.
  */
 
+pub mod collection;
+pub mod fs;
+pub mod variant;
+
 mod core;
 mod combinators;
-pub mod variant;
-pub mod collection;
 
 pub use self::core::*;
 pub use self::combinators::*;
