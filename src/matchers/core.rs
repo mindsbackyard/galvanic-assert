@@ -343,9 +343,12 @@ where T: Debug + 'a {
     })
 }
 
-/// Write patterns of structs/enums which use `Matcher`s instead of field values.
+/// Creates a `Matcher` for the structure of structs/enums where each field can inspected with a separate `Matcher`.
 ///
-/// When providing matchers for multiple fields, not that *all* matchers will be evaluated.
+/// The syntax is the same as when instantiating structs/enums.
+/// Though instead of a value a `Matcher` is provided for a the given fields.
+/// It is *not* necessary to list all fields of a struct/enum---missing ones are ignored.
+/// When providing matchers for multiple fields, note that *all* matchers will be evaluated.
 /// Even if one of them returns `MatchResult::Failed`.
 ///
 /// For struct-like structs/enum-variants not all fields need to be listed in the pattern.
