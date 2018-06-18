@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-//! **TODO**
+//! The `fs` module contains matchers for asserting properties of files, directories, and whole file system structures.
 
 use super::super::*;
 
