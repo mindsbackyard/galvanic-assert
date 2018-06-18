@@ -104,7 +104,7 @@ pub fn content_as_bytes<P: AsRef<Path>>(content_matcher: Box<Matcher<Vec<u8>>>) 
 /// This is the obligation of he wrapped matcher if it assumes the existance of the entry.
 ///
 /// The preferred way to create a `FileMatcher` is by using the `fs_structure!` macro.
-/// ```
+/// ```rust,ignore
 /// assert_that!("/some/dir", fs_structure! {
 ///     "some file"; matches content(eq("The file content"))
 /// });
@@ -136,7 +136,7 @@ impl<P: AsRef<Path>> Matcher<P> for FileMatcher {
 /// The resulting path is then checked all wrapped file matchers and recursively with all sub directory matchers.
 ///
 /// The preferred way to create a `DirectoryMatcher` is by using the `fs_structure!` macro.
-/// ```
+/// ```rust,ignore
 /// assert_that!("/some/dir", fs_structure! {
 ///     "some file"; matches content(eq("The file content")),
 ///     "some other dir"; {
@@ -226,7 +226,19 @@ impl DirectoryMatcher {
 /// Sub directories need their own `exhaustive:` directive if intended.
 ///
 /// #Examples
-/// **TODO**
+/// ```rust,ignore
+/// use galvanic_assert::matchers::*;
+/// ...
+/// assert_that!("/some/dir", fs_structure! {
+///     "some file"; matches fs::exists(),
+///     "some sub dir with all entries listed"; {
+///         exhaustive:
+///         "another file"; matches fs::content(eq("".to_owned())),
+///         "a dir which entries we don't care about"; matches is_dir()
+///         // no other files/directories are allowed to exist here
+///     }
+///     // other files/directories may exists in this directory which are not checked
+/// })
 #[macro_export]
 macro_rules! fs_structure {
 
