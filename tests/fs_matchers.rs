@@ -21,6 +21,82 @@ use galvanic_assert::matchers::fs::*;
 use std::fs::File;
 use tempfile::tempdir;
 
+mod exists {
+    use super::*;
+
+    #[test]
+    fn should_match_existing_file() {
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("file.tmp");
+        File::create(file_path.clone()).unwrap();
+
+        assert_that!(&file_path, exists());
+    }
+
+    #[test]#[should_panic]
+    fn should_fail_to_match_non_existing_file() {
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("file.tmp");
+
+        assert_that!(&file_path, exists());
+    }
+}
+
+mod is_file {
+    use super::*;
+
+    #[test]
+    fn should_match_file() {
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("file.tmp");
+        File::create(file_path.clone()).unwrap();
+
+        assert_that!(&file_path, is_file());
+    }
+
+    #[test]#[should_panic]
+    fn should_fail_to_match_non_existing_file() {
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("file.tmp");
+
+        assert_that!(&file_path, is_file());
+    }
+
+    #[test]#[should_panic]
+    fn should_fail_to_match_dir() {
+        let dir = tempdir().unwrap();
+
+        assert_that!(&dir.path(), is_file());
+    }
+}
+
+mod is_dir {
+    use super::*;
+
+    #[test]
+    fn should_match_dir() {
+        let dir = tempdir().unwrap();
+
+        assert_that!(&dir.path(), is_dir());
+    }
+
+    #[test]#[should_panic]
+    fn should_fail_to_match_non_existing_file() {
+        let dir = tempdir().unwrap();
+        let sub_dir_path = dir.path().join("sub_dir");
+
+        assert_that!(&sub_dir_path, is_dir());
+    }
+
+    #[test]#[should_panic]
+    fn should_fail_to_match_file() {
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("file.tmp");
+        File::create(file_path.clone()).unwrap();
+
+        assert_that!(&file_path, is_dir());
+    }
+}
 
 mod content {
     use super::*;
@@ -33,7 +109,16 @@ mod content {
         let file_content = "Temporary file content";
         write!(File::create(file_path.clone()).unwrap(), "{}", file_content).unwrap();
 
-        assert_that!(&file_path, content(eq(file_content.to_owned())))
+        assert_that!(&file_path, content(eq(file_content.to_owned())));
+    }
+
+    #[test]#[should_panic]
+    fn should_fail_to_match_content_of_file() {
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("file.tmp");
+        write!(File::create(file_path.clone()).unwrap(), "Temporary file content").unwrap();
+
+        assert_that!(&file_path, content(eq("Other content".into())));
     }
 
     #[test]
@@ -43,6 +128,15 @@ mod content {
         let file_content = "Temporary file content";
         write!(File::create(file_path.clone()).unwrap(), "{}", file_content).unwrap();
 
-        assert_that!(&file_path, content_as_bytes(eq(file_content.as_bytes().to_vec())))
+        assert_that!(&file_path, content_as_bytes(eq(file_content.as_bytes().to_vec())));
+    }
+
+    #[test]#[should_panic]
+    fn should_fail_to_match_bytes_content_of_file() {
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("file.tmp");
+        write!(File::create(file_path.clone()).unwrap(), "Temporary file content").unwrap();
+
+        assert_that!(&file_path, content_as_bytes(eq("Other content".as_bytes().to_vec())));
     }
 }
