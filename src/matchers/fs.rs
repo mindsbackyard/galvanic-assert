@@ -110,8 +110,17 @@ pub fn content_as_bytes<P: AsRef<Path>>(content_matcher: Box<Matcher<Vec<u8>>>) 
 /// });
 /// ```
 pub struct FileMatcher {
-    name: String,
-    matcher: Box<Matcher<PathBuf>>,
+    pub name: String,
+    pub matcher: Box<Matcher<PathBuf>>,
+}
+
+impl FileMatcher {
+    pub fn for_<S: Into<String>>(name: S, matcher: Box<Matcher<PathBuf>>) -> FileMatcher {
+        FileMatcher {
+            name: name.into(),
+            matcher
+        }
+    }
 }
 
 impl<P: AsRef<Path>> Matcher<P> for FileMatcher {
@@ -145,29 +154,60 @@ impl<P: AsRef<Path>> Matcher<P> for FileMatcher {
 /// });
 /// ```
 pub struct DirectoryMatcher {
-    name: Option<String>,
-    sub_directories: Vec<DirectoryMatcher>,
-    files: Vec<FileMatcher>,
-    is_exhaustive: bool,
+    pub name: Option<String>,
+    pub sub_directories: Vec<DirectoryMatcher>,
+    pub files: Vec<FileMatcher>,
+    pub is_exhaustive: bool,
+}
+
+impl DirectoryMatcher {
+    pub fn for_(
+        name: Option<String>,
+        sub_directories: Vec<DirectoryMatcher>,
+        files: Vec<FileMatcher>,
+        is_exhaustive: bool
+    ) -> DirectoryMatcher
+    {
+        DirectoryMatcher {
+            name,
+            sub_directories,
+            files,
+            is_exhaustive,
+        }
+    }
+
+    fn _collect_dir_entries(&self, dir_path: &Path) -> std::io::Result<BTreeSet<String>> {
+        let mut entries = BTreeSet::new();
+        match dir_path.read_dir() {
+            Ok(iter) => for maybe_entry in iter {
+                match maybe_entry {
+                    Ok(entry) => entries.insert(entry.file_name().into_string().unwrap()),
+                    Err(err) => return Err(err)
+                };
+            },
+            Err(err) => return Err(err)
+        }
+        Ok(entries)
+    }
 }
 
 impl<P: AsRef<Path>> Matcher<P> for DirectoryMatcher {
     fn check(&self, dir_path: &P) -> MatchResult {
         let dir_path = dir_path.as_ref().join(self.name.as_ref().unwrap_or(&String::new()));
-        let builder = MatchResultBuilder::for_("fs_structure");
+        let builder = MatchResultBuilder::for_(&format!("Entries in `{}`", dir_path.to_str().unwrap()));
 
         if !dir_path.is_dir() {
             return builder.failed_because(&format!("Path `{}` is not a directory", dir_path.to_str().unwrap()));
         }
 
         let mut entries = match self._collect_dir_entries(&dir_path) {
-            Ok(set) =>  set,
+            Ok(set) => set,
             err@Err(_) => return err.into()
         };
 
         for file in self.files.iter() {
             entries.remove(&file.name);
-            if let failed@MatchResult::Failed { .. } = file.matcher.check(&dir_path) {
+            if let failed@MatchResult::Failed { .. } = file.check(&dir_path) {
                 return failed;
             }
         }
@@ -187,22 +227,6 @@ impl<P: AsRef<Path>> Matcher<P> for DirectoryMatcher {
             ))
         }
         builder.matched()
-    }
-}
-
-impl DirectoryMatcher {
-    fn _collect_dir_entries(&self, dir_path: &Path) -> std::io::Result<BTreeSet<String>> {
-        let mut entries = BTreeSet::new();
-        match dir_path.read_dir() {
-            Ok(iter) => for maybe_entry in iter {
-                match maybe_entry {
-                    Ok(entry) => entries.insert(entry.file_name().into_string().unwrap()),
-                    Err(err) => return Err(err)
-                };
-            },
-            Err(err) => return Err(err)
-        }
-        Ok(entries)
     }
 }
 
@@ -249,20 +273,17 @@ macro_rules! fs_structure {
     ( @dir $name:expr ; { $($inner:tt)* } ) => {
         {
             let DirectoryMatcher { sub_directories, files, is_exhaustive, .. } = fs_structure!( $($inner)* );
-            DirectoryMatcher {
-                name: $name.into(),
+            DirectoryMatcher::for_(
+                Some($name.into()),
                 sub_directories,
                 files,
                 is_exhaustive,
-            }
+            )
         }
     };
 
     ( @file $name:expr ; $matcher:expr ) => {
-        FileMatcher {
-            name: $name.into(),
-            matcher: $matcher,
-        }
+        FileMatcher::for_($name, $matcher)
     };
 
     ( @expand files [ $($files:tt)* ] dirs [ $($dirs:tt)* ] [ $($exhaustive:tt)* ] <- [ $name:expr ; { $($inner:tt)* }, $($rest:tt)* ] ) => {
@@ -282,12 +303,12 @@ macro_rules! fs_structure {
     };
 
     ( @expand files [ $($files:tt)* ] dirs [ $($dirs:tt)* ] [ $($exhaustive:tt)* ] <- [ ] ) => {
-        DirectoryMatcher {
-            name: String::new(),
-            sub_directories: vec![$($dirs)*],
-            files: vec![$($files)*],
-            is_exhaustive: fs_structure!( @exhaustive $($exhaustive)* ),
-        }
+        DirectoryMatcher::for_(
+            None,
+            vec![$($dirs)*],
+            vec![$($files)*],
+            fs_structure!( @exhaustive $($exhaustive)* )
+        )
     };
 
     ( exhaustive: $($tokens:tt)* ) => {
