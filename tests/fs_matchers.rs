@@ -237,7 +237,6 @@ mod dir_matcher {
 mod fs_structure {
     use super::*;
     use std::fs::create_dir;
-    use std::io::Write;
 
     #[test]
     fn should_match_files_and_dirs() {
@@ -347,7 +346,7 @@ mod fs_structure {
         });
     }
 
-    #[test]#[shoud_panic]
+    #[test]#[should_panic]
     fn should_fail_to_match_files_and_dirs_recursively_and_only_sub_dir_exhaustively() {
         let dir = tempdir().unwrap();
         let file1_path = dir.path().join("file1.tmp");
