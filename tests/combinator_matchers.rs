@@ -114,6 +114,7 @@ mod combining_variant_matchers {
     use galvanic_assert::matchers::*;
 
     #[allow(dead_code)]
+    #[derive(Debug)]
     enum Variants {
         First,
         Second,

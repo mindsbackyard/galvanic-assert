@@ -34,6 +34,7 @@ use super::super::*;
 /// ```
 /// # #[macro_use] extern crate galvanic_assert;
 /// # fn main() {
+/// #[derive(Debug)]
 /// enum MyEnum { Foo, Bar(i32), Baz{x: i32} }
 /// assert_that!(&MyEnum::Baz{x: 2}, is_variant!(MyEnum::Baz));
 /// # }
@@ -46,8 +47,8 @@ macro_rules! is_variant {
             let builder = MatchResultBuilder::for_("is_variant");
             match actual {
                 &$variant {..} => builder.matched(),
-                _ => builder.failed_because(
-                        &format!("passed variant does not match '{}'", stringify!($variant))
+                x => builder.failed_because(
+                        &format!("passed variant of {:?} does not match '{}'", x, stringify!($variant))
                 )
             }
         })
